@@ -1,2 +1,2 @@
 # armenian-landing
-Мой путь к армянскому языку: персональный тренажер слов и выражений. Начинаю с нуля!
+Self-education project: Armenian vocabulary trainer & quiz tool.
