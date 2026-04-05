@@ -7,24 +7,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background: #fafafa; color: #333; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .hero { text-align: center; padding: 60px 20px; max-width: 600px; }
-        h1 { font-size: 2.5rem; margin-bottom: 10px; color: #1a1a1a; }
-        .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 90%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #eee; border-radius: 12px; font-size: 1rem; box-sizing: border-box; }
+        .hero { text-align: center; padding: 40px 20px; max-width: 600px; }
+        h1 { font-size: 2.2rem; margin-bottom: 10px; color: #1a1a1a; }
+        .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 90%; max-width: 450px; text-align: center; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #eee; border-radius: 12px; font-size: 1rem; box-sizing: border-box; font-family: inherit; }
         button { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #FF4B4B; color: white; font-weight: 500; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         button:hover { background: #e64444; transform: translateY(-2px); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .tab { cursor: pointer; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; background: #eee; }
         .tab.active { background: #1a1a1a; color: white; }
         #word-display { font-size: 1.8rem; font-weight: 700; margin: 20px 0; color: #FF4B4B; }
-        .list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f0f0f0; }
+        .category-header { text-align: left; background: #f0f0f0; padding: 5px 15px; border-radius: 8px; margin-top: 20px; font-weight: bold; font-size: 0.9rem; color: #666; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.95rem; }
+        #feedback { min-height: 1.2em; margin-top: 10px; font-weight: 500; }
     </style>
 </head>
 <body>
 
     <div class="hero">
         <h1>🇦🇲 Армянский язык</h1>
-        <p>Изучение армянского языка по системе Дария Степаняна. Твой личный прогресс в одном месте.</p>
+        <p>Системный подход по Дарию Степаняну</p>
     </div>
 
     <div class="card">
@@ -43,70 +45,115 @@
 
         <div id="add-section" style="display:none;">
             <h3>Новое слово</h3>
+            <select id="new-cat">
+                <option value="Урок 1">Урок 1</option>
+                <option value="Семья">Семья</option>
+                <option value="Местоимения">Местоимения</option>
+                <option value="Глаголы">Глаголы</option>
+                <option value="Разное">Разное</option>
+            </select>
             <input type="text" id="new-arm" placeholder="Армянское (напр: Tun)">
             <input type="text" id="new-art" placeholder="Артикль (напр: -ը)">
             <input type="text" id="new-rus" placeholder="Перевод">
-            <button onclick="saveWord()">Сохранить</button>
+            <button onclick="saveWord()">Сохранить в базу</button>
         </div>
 
-        <div id="list-section" style="display:none;">
-            <h3>Мои знания</h3>
+        <div id="list-section" style="display:none; text-align: left;">
+            <h3>Мои знания по категориям</h3>
             <div id="words-list"></div>
         </div>
     </div>
 
     <script>
-        let dictionary = JSON.parse(localStorage.getItem('arm_words')) || {};
-        let currentWord = "";
+        // Загружаем данные: теперь это массив объектов
+        let dictionary = JSON.parse(localStorage.getItem('arm_words_v2')) || [];
+        let currentWordObj = null;
 
         function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            // Ищем таб по тексту, чтобы подсветить активный
+            const tabs = document.querySelectorAll('.tab');
+            if(tab === 'test') tabs[0].classList.add('active');
+            if(tab === 'add') tabs[1].classList.add('active');
+            if(tab === 'list') tabs[2].classList.add('active');
+
             document.getElementById('test-section').style.display = tab === 'test' ? 'block' : 'none';
             document.getElementById('add-section').style.display = tab === 'add' ? 'block' : 'none';
             document.getElementById('list-section').style.display = tab === 'list' ? 'block' : 'none';
+            
             if(tab === 'list') updateList();
             if(tab === 'test') nextWord();
         }
 
         function saveWord() {
-            const arm = document.getElementById('new-arm').value;
-            const art = document.getElementById('new-art').value;
-            const rus = document.getElementById('new-rus').value;
+            const arm = document.getElementById('new-arm').value.trim();
+            const art = document.getElementById('new-art').value.trim();
+            const rus = document.getElementById('new-rus').value.trim();
+            const cat = document.getElementById('new-cat').value;
+
             if(arm && rus) {
-                dictionary[arm + art] = rus;
-                localStorage.setItem('arm_words', JSON.stringify(dictionary));
-                alert('Слово сохранено!');
+                const newEntry = {
+                    word: arm + art,
+                    translation: rus,
+                    category: cat
+                };
+                dictionary.push(newEntry);
+                localStorage.setItem('arm_words_v2', JSON.stringify(dictionary));
+                alert('Слово добавлено в категорию ' + cat);
+                
                 document.getElementById('new-arm').value = '';
+                document.getElementById('new-art').value = '';
                 document.getElementById('new-rus').value = '';
             }
         }
 
         function nextWord() {
-            const keys = Object.keys(dictionary);
-            if(keys.length > 0) {
-                currentWord = keys[Math.floor(Math.random() * keys.length)];
-                document.getElementById('word-display').innerText = currentWord;
+            if(dictionary.length > 0) {
+                currentWordObj = dictionary[Math.floor(Math.random() * dictionary.length)];
+                document.getElementById('word-display').innerText = currentWordObj.word;
                 document.getElementById('feedback').innerText = "";
                 document.getElementById('answer-input').value = "";
+            } else {
+                document.getElementById('word-display').innerText = "Пусто :(";
             }
         }
 
         function checkAnswer() {
             const ans = document.getElementById('answer-input').value.toLowerCase().trim();
-            if(ans === dictionary[currentWord].toLowerCase().trim()) {
-                document.getElementById('feedback').innerHTML = "✨ Правильно, Джан!";
+            if(currentWordObj && ans === currentWordObj.translation.toLowerCase().trim()) {
+                document.getElementById('feedback').innerHTML = "<span style='color:green'>✨ Джан! Верно!</span>";
                 setTimeout(nextWord, 1500);
             } else {
-                document.getElementById('feedback').innerHTML = "❌ Ошибка. Это '" + dictionary[currentWord] + "'";
+                document.getElementById('feedback').innerHTML = "<span style='color:red'>❌ Нет, это '" + currentWordObj.translation + "'</span>";
             }
         }
 
         function updateList() {
-            const list = document.getElementById('words-list');
-            list.innerHTML = "";
-            for(let key in dictionary) {
-                list.innerHTML += `<div class="list-item"><b>${key}</b> <span>${dictionary[key]}</span></div>`;
+            const listDiv = document.getElementById('words-list');
+            listDiv.innerHTML = "";
+
+            if(dictionary.length === 0) {
+                listDiv.innerHTML = "<p>Пока слов нет...</p>";
+                return;
+            }
+
+            // Группируем слова по категориям
+            const grouped = {};
+            dictionary.forEach(item => {
+                if(!grouped[item.category]) grouped[item.category] = [];
+                grouped[item.category].push(item);
+            });
+
+            // Выводим красиво
+            for(let cat in grouped) {
+                listDiv.innerHTML += `<div class="category-header">${cat}</div>`;
+                grouped[cat].forEach(item => {
+                    listDiv.innerHTML += `
+                        <div class="list-item">
+                            <b>${item.word}</b> 
+                            <span>${item.translation}</span>
+                        </div>`;
+                });
             }
         }
 
