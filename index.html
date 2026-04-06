@@ -16,43 +16,59 @@
 
     /* AUTH SCREEN */
     #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .auth-card { background: #fff; padding: 40px 25px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
+    .auth-card { background: #fff; padding: 45px 30px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
     .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; }
 
-    /* MAIN APP UI */
-    #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .hero { text-align: center; padding: 45px 0 30px; }
-    .hero h1 { font-family: 'Playfair Display', serif; font-size: 44px; line-height: 1.1; margin-bottom: 8px; }
+    /* HERO SECTION */
+    #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero { text-align: center; padding: 60px 0 40px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 48px; line-height: 1; margin-bottom: 12px; letter-spacing: -1px; }
     .hero h1 span { color: var(--red); }
-    .hero p { font-size: 15px; color: var(--light); font-weight: 300; }
+    .hero p { font-size: 16px; color: var(--light); font-weight: 300; }
 
+    /* CARD CONTAINER */
     .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
+
+    /* TABS NAVIGATION */
     .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-    .tab { flex: 1; min-width: 85px; padding: 22px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.8px; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 1; min-width: 90px; padding: 25px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 4px solid transparent; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: 0.3s; }
+    .tab-icon { font-size: 24px; transition: transform 0.3s; }
     .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
+    .tab.active .tab-icon { transform: scale(1.1); }
 
-    .panel { display: none; padding: 35px 25px; }
+    /* CONTENT PANELS */
+    .panel { display: none; padding: 40px 25px; }
     .panel.active { display: block; }
-    .input-group { margin-bottom: 20px; text-align: left; }
-    .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--light); margin-bottom: 6px; text-transform: uppercase; }
-    input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; background: #fff; }
+
+    .test-word { font-family: 'Playfair Display', serif; font-size: 56px; text-align: center; margin: 45px 0; color: var(--dark); letter-spacing: -1px; }
+
+    .input-group { margin-bottom: 25px; text-align: left; }
+    .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 18px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; background: #fff; transition: 0.3s; }
+    input:focus { border-color: var(--red); }
+    input::placeholder { color: #ccc; font-weight: 300; }
+
+    /* BUTTONS */
+    .btn { width: 100%; padding: 20px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.3s; font-family: 'DM Sans', sans-serif; }
+    .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(232, 52, 28, 0.2); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--mid); margin-top: 15px; }
+
+    /* SETTINGS & ADMIN */
+    .floating-settings { position: fixed; bottom: 30px; left: 30px; width: 55px; height: 55px; background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .floating-settings:hover { transform: rotate(180deg) scale(1.1); }
     
-    .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s; }
-    .btn-primary { background: var(--red); color: #fff; }
-    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--mid); margin-top: 10px; }
+    .dict-item { padding: 18px 0; border-bottom: 1px solid #f8f8f8; display: flex; justify-content: space-between; align-items: center; }
+    .dict-item b { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
 
-    .floating-settings { 
-        position: fixed; bottom: 25px; left: 25px; width: 50px; height: 50px; 
-        background: rgba(255,255,255,0.9); border: 1px solid var(--border); 
-        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-        z-index: 1000; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        cursor: pointer; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .floating-settings:hover { transform: rotate(90deg); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
+    .grid-item { background: #fff; border: 1px solid var(--border); padding: 25px 10px; border-radius: var(--radius-sm); text-align: center; transition: 0.3s; }
+    .grid-item:hover { border-color: var(--red); transform: translateY(-3px); }
 
-    .dict-item { padding: 16px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; }
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 15px 35px; border-radius: 40px; font-size: 14px; display: none; z-index: 10000; text-align: center; width: 90%; max-width: 400px; }
+    .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 18px 40px; border-radius: 50px; font-size: 14px; display: none; z-index: 10000; text-align: center; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 </style>
 </head>
 <body>
@@ -60,7 +76,7 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2>Барев, Джан! 🇦🇲</h2>
-        <p style="font-size:14px; color:#888; margin-bottom:25px;">Введите свои данные</p>
+        <p style="font-size:15px; color:#888; margin-bottom:30px; font-weight:300;">Введите свои данные</p>
         <div class="input-group"><label>Логин</label><input type="text" id="auth-login"></div>
         <div class="input-group"><label>Пароль</label><input type="password" id="auth-pass"></div>
         <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Войти в систему</button>
@@ -72,44 +88,44 @@
         <h1>Армянский <span>Язык</span></h1>
         <p>Твой интерактивный помощник в изучении языка</p>
     </div>
+
     <div class="card">
         <div class="tabs">
-            <div class="tab active" data-tab="test">🎯 Тесты</div>
-            <div class="tab" data-tab="add">➕ Слова</div>
-            <div class="tab" data-tab="words">📚 Словарь</div>
-            <div class="tab" data-tab="alphabet">📖 Алфавит</div>
-            <div class="tab" data-tab="library">🏛️ Библиотека</div>
+            <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
+            <div class="tab" data-tab="add"><span class="tab-icon">➕</span>Слова</div>
+            <div class="tab" data-tab="words"><span class="tab-icon">📚</span>Словарь</div>
+            <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
+            <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
         </div>
 
         <div class="panel active" id="panel-test">
-            <div id="test-word" style="font-family:'Playfair Display', serif; font-size:52px; text-align:center; margin:40px 0;">...</div>
+            <div id="test-word" class="test-word">...</div>
             <input type="text" id="answer-input" placeholder="Введите перевод..." autocomplete="off">
-            <button class="btn btn-primary" style="margin-top:20px" onclick="checkAnswer()">Проверить ✓</button>
+            <button class="btn btn-primary" style="margin-top:25px" onclick="checkAnswer()">Проверить ✓</button>
         </div>
 
         <div class="panel" id="panel-add">
-            <div class="input-group"><label>Слово</label><input type="text" id="add-arm" placeholder="Напр: Բարև"></div>
+            <div class="input-group"><label>Армянское слово</label><input type="text" id="add-arm" placeholder="Напр: Բարև"></div>
             <div class="input-group"><label>Транскрипция</label><input type="text" id="add-trans" placeholder="Напр: Barev"></div>
             <div class="input-group"><label>Перевод</label><input type="text" id="add-rus" placeholder="Напр: Привет"></div>
-            <div class="input-group"><label>Категория</label><select id="add-cat"><option value="Урок 1">Урок 1</option><option value="Семья">Семья</option></select></div>
+            <div class="input-group"><label>Категория</label><select id="add-cat"></select></div>
             <button class="btn btn-primary" id="save-btn" onclick="saveWord()">Добавить в словарь</button>
         </div>
 
         <div class="panel" id="panel-words"><div id="words-content">Загрузка...</div></div>
-        <div class="panel" id="panel-alphabet"><div id="alphabet-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:12px;"></div></div>
+        <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
         <div class="panel" id="panel-library">Раздел в разработке</div>
 
         <div class="panel" id="panel-settings">
-            <div id="admin-badge-box"></div>
-            <p id="user-info" style="font-size:13px; color:var(--light); margin-bottom:20px;"></p>
-            <div id="admin-panel" style="display:none; border-top:1px dashed var(--red); padding-top:20px;">
-                <h3 style="font-size:14px; margin-bottom:15px; color:var(--red)">Панель Админа</h3>
-                <div class="input-group"><label>Логин юзера</label><input type="text" id="new-login"></div>
+            <div id="user-info" style="font-size:14px; color:var(--light); margin-bottom:25px; background: #f9f9f9; padding: 15px; border-radius: 15px;"></div>
+            <div id="admin-panel" style="display:none; border-top:1px dashed var(--red); padding-top:30px;">
+                <h3 style="font-size:16px; color:var(--red); margin-bottom:20px; font-family:'Playfair Display';">Панель Администратора</h3>
+                <div class="input-group"><label>Логин нового юзера</label><input type="text" id="new-login"></div>
                 <div class="input-group"><label>Пароль</label><input type="text" id="new-pass"></div>
                 <div class="input-group"><label>Ссылка на таблицу</label><input type="text" id="new-tid"></div>
                 <button class="btn btn-primary" onclick="adminAddUser()">Создать аккаунт</button>
             </div>
-            <button class="btn btn-outline" style="margin-top:40px; color:var(--red)" onclick="logout()">Выйти</button>
+            <button class="btn btn-outline" style="margin-top:50px; color:var(--red); border-color: #fee" onclick="logout()">Выйти из аккаунта</button>
         </div>
     </div>
 </div>
@@ -118,15 +134,8 @@
 <div id="toast" class="toast"></div>
 
 <script>
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!! ВОТ СЮДА ВСТАВЛЯЙ СВОЮ ССЫЛКУ МЕЖДУ КАВЫЧКАМИ ВНИЗУ (строка 214) !!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyYIdUltSziWHs0_G3SGbDR9zpF06YEYdDCePNQB9KKiqvgbwYY8Tioi9Lg2Rf-Oo/exec"; 
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// --- КОНФИГУРАЦИЯ ---
+const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyYIdUltSziWHs0_G3SGbDR9zpF06YEYdDCePNQB9KKiqvgbwYY8Tioi9Lg2Rf-Oo/exec"; // <--- ВСТАВЬ СВОЮ ССЫЛКУ /EXEC СЮДА
 
 let currentUser = JSON.parse(localStorage.getItem('arm_session')) || null;
 let wordsData = [];
@@ -138,6 +147,7 @@ async function handleLogin() {
     const login = document.getElementById('auth-login').value.trim();
     const pass = document.getElementById('auth-pass').value.trim();
     if(!login || !pass) return showToast('Заполните поля');
+    const btn = document.getElementById('login-btn'); btn.innerText = 'Вход...'; btn.disabled = true;
     try {
         const res = await fetch(`${MASTER_SCRIPT_URL}?action=login&login=${encodeURIComponent(login)}&pass=${encodeURIComponent(pass)}`);
         const result = await res.json();
@@ -145,23 +155,22 @@ async function handleLogin() {
             currentUser = { login, tableId: result.tableId, role: result.role };
             localStorage.setItem('arm_session', JSON.stringify(currentUser));
             location.reload();
-        } else { showToast(result.message); }
-    } catch(e) { showToast('Ошибка соединения'); }
+        } else { showToast(result.message); btn.innerText = 'Войти'; btn.disabled = false; }
+    } catch(e) { showToast('Ошибка соединения'); btn.innerText = 'Войти'; btn.disabled = false; }
 }
 
 function showApp() {
     document.getElementById('auth-overlay').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    document.getElementById('user-info').innerText = `Профиль: ${currentUser.login}`;
+    document.getElementById('user-info').innerText = `Профиль: ${currentUser.login} (${currentUser.role})`;
     if(currentUser.role === 'admin') document.getElementById('admin-panel').style.display = 'block';
-    syncData('Слова').then(() => renderTest());
+    renderCategories(); syncData('Слова').then(() => renderTest());
 }
 
 async function syncData(sheet) {
     try {
         const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${encodeURIComponent(currentUser.tableId)}&sheet=${encodeURIComponent(sheet)}`);
         const data = await res.json();
-        if (data.error) { showToast('⚠️ ' + data.error); return []; }
         if(sheet === 'Слова') wordsData = data;
         return data;
     } catch(e) { return []; }
@@ -170,8 +179,7 @@ async function syncData(sheet) {
 async function saveWord() {
     const data = { action: "addWord", tableId: currentUser.tableId, category: document.getElementById('add-cat').value, word: document.getElementById('add-arm').value, transcription: document.getElementById('add-trans').value, translation: document.getElementById('add-rus').value };
     await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-    showToast('✓ Добавлено');
-    syncData('Слова');
+    showToast('✓ Слово добавлено!'); syncData('Слова');
 }
 
 function renderTest() {
@@ -184,13 +192,14 @@ function renderTest() {
 function checkAnswer() {
     const input = document.getElementById('answer-input').value.trim().toLowerCase();
     const correct = (currentWord.Русский || currentWord.Перевод || "").toLowerCase();
-    if(input === correct) { showToast('✨ Джан!'); setTimeout(renderTest, 1200); }
+    if(input === correct) { showToast('✨ Правильно, Джан!'); setTimeout(renderTest, 1200); }
     else { showToast(`❌ Правильно: ${correct}`); }
 }
 
 function logout() { localStorage.removeItem('arm_session'); location.reload(); }
 function openSettings() { document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active')); document.getElementById('panel-settings').classList.add('active'); }
-function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3500); }
+function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+function renderCategories() { const cats = ['Урок 1', 'Семья', 'Разговорное']; document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
 
 document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => {
@@ -198,11 +207,13 @@ document.querySelectorAll('.tab').forEach(t => {
         document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
         t.classList.add('active'); document.getElementById('panel-' + tab).classList.add('active');
         if(tab === 'alphabet') syncData('Алфавит').then(data => {
-            document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div style="font-size:28px; color:var(--red); font-family:'Playfair Display';">${b.Буква || ''}</div><div style="font-size:10px; color:#888;">${b.Название || ''}</div></div>`).join('');
+            document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква || '—'}</div><div style="font-size:11px; color:#888; margin-top:5px;">${b.Название || ''}</div></div>`).join('');
         });
         if(tab === 'words') syncData('Слова').then(data => {
             const cont = document.getElementById('words-content');
-            cont.innerHTML = data.map(w => `<div class="dict-item"><div><b>${w.Армянский || w.Слово}</b><br><small style="color:#888">${w.Транскрипция || ''}</small></div> <span>${w.Русский || w.Перевод}</span></div>`).join('');
+            const grouped = {};
+            data.forEach(w => { const c = w.Категория || 'Общее'; if(!grouped[c]) grouped[c] = []; grouped[c].push(w); });
+            cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `<div style="font-size:12px; font-weight:800; color:var(--red); margin-top:35px; text-transform:uppercase; border-bottom:1px solid #fee; padding-bottom:8px;">${cat}</div>${ws.map(w => `<div class="dict-item"><div><b>${w.Армянский || w.Слово}</b><br><small style="color:#888; font-size:12px;">${w.Транскрипция || ''}</small></div> <span style="font-weight:500;">${w.Русский || w.Перевод}</span></div>`).join('')}`).join('');
         });
     });
 });
