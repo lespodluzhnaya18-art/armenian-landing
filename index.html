@@ -19,7 +19,7 @@
     .auth-card { background: #fff; padding: 40px 25px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
     .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; }
 
-    /* MAIN UI */
+    /* MAIN APP */
     #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -29,7 +29,6 @@
     .hero p { font-size: 15px; color: var(--light); font-weight: 300; }
 
     .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
-
     .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
     .tab { flex: 1; min-width: 85px; padding: 22px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.8px; }
     .tab-icon { font-size: 22px; display: block; margin-bottom: 5px; }
@@ -58,7 +57,7 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 12px; }
     .grid-item { background: #fff; border: 1px solid var(--border); padding: 20px 5px; border-radius: var(--radius-sm); text-align: center; }
     .grid-letter { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--red); }
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 15px 35px; border-radius: 40px; font-size: 14px; display: none; z-index: 10000; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 15px 35px; border-radius: 40px; font-size: 14px; display: none; z-index: 10000; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
 </style>
 </head>
 <body>
@@ -66,14 +65,14 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2>Барев, Джан! 🇦🇲</h2>
-        <p id="auth-status" style="font-size:14px; color:#888; margin-bottom:25px;">Введите свои данные для входа</p>
+        <p style="font-size:14px; color:#888; margin-bottom:25px;">Введите свои данные для входа</p>
         <div class="input-group">
             <label>Логин</label>
-            <input type="text" id="auth-login" placeholder="">
+            <input type="text" id="auth-login">
         </div>
         <div class="input-group">
             <label>Пароль</label>
-            <input type="password" id="auth-pass" placeholder="">
+            <input type="password" id="auth-pass">
         </div>
         <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Войти в систему</button>
     </div>
@@ -121,9 +120,7 @@
         </div>
 
         <div class="panel" id="panel-words"><div id="words-content">Загрузка словаря...</div></div>
-        
         <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
-        
         <div class="panel" id="panel-library">
             <div style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto;">
                 <button class="btn" style="padding:10px; font-size:11px; background:#eee;" onclick="loadLibrary('Префиксы', this)">Префиксы</button>
@@ -140,7 +137,10 @@
                 <h3 style="font-size:14px; margin-bottom:15px; color:var(--red)">Панель Администратора</h3>
                 <div class="input-group"><label>Логин нового юзера</label><input type="text" id="new-login"></div>
                 <div class="input-group"><label>Пароль</label><input type="text" id="new-pass"></div>
-                <div class="input-group"><label>ID его таблицы</label><input type="text" id="new-tid"></div>
+                <div class="input-group">
+                    <label>Ссылка на Google Таблицу юзера</label>
+                    <input type="text" id="new-tid" placeholder="Вставьте полную ссылку из браузера">
+                </div>
                 <button class="btn btn-primary" onclick="adminAddUser()">Создать аккаунт</button>
             </div>
 
@@ -153,8 +153,8 @@
 <div id="toast" class="toast"></div>
 
 <script>
-
-const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyrRM1T5J4aphlqlep6lbLksFrzqtKTFcHQSKqF51_g02nzbE_VSDCyNjOl4uYuo2G/exec"; 
+// ВСТАВЬ СЮДА СВОЙ URL МАСТЕР-СКРИПТА
+const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxH3MPG9tCwy1Bdh9_gXMafqM2SMDv8Q0EAJgtY3vNw1ZE8gDXj3jErZWROMAl243pk/exec"; 
 
 let currentUser = JSON.parse(localStorage.getItem('arm_session')) || null;
 let wordsData = [];
@@ -169,7 +169,7 @@ async function checkSession() {
 async function handleLogin() {
     const login = document.getElementById('auth-login').value.trim();
     const pass = document.getElementById('auth-pass').value.trim();
-    if(!login || !pass) return showToast('Введите логин и пароль');
+    if(!login || !pass) return showToast('Введите данные');
 
     const btn = document.getElementById('login-btn');
     btn.innerText = 'Синхронизация...';
@@ -182,14 +182,14 @@ async function handleLogin() {
         if(result.success) {
             currentUser = { login, tableId: result.tableId, role: result.role };
             localStorage.setItem('arm_session', JSON.stringify(currentUser));
-            location.reload();
+            showApp();
         } else { 
             showToast(result.message || 'Ошибка входа'); 
             btn.innerText = 'Войти в систему';
             btn.disabled = false;
         }
     } catch(e) { 
-        showToast('Ошибка соединения. Проверьте ссылку в коде!');
+        showToast('Ошибка соединения. Проверьте настройки деплоя!');
         btn.innerText = 'Войти в систему';
         btn.disabled = false;
     }
@@ -211,7 +211,7 @@ function showApp() {
 
 async function syncData(sheet) {
     try {
-        const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${currentUser.tableId}&sheet=${encodeURIComponent(sheet)}`);
+        const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${encodeURIComponent(currentUser.tableId)}&sheet=${encodeURIComponent(sheet)}`);
         const data = await res.json();
         if(sheet === 'Слова') wordsData = data;
         return data;
@@ -223,7 +223,7 @@ async function saveWord() {
     const btn = document.getElementById('save-btn');
     btn.innerText = 'Сохранение...';
     await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-    showToast('✓ Слово в словаре!');
+    showToast('✓ Добавлено!');
     btn.innerText = 'Добавить в словарь';
     document.getElementById('add-arm').value = ''; 
     document.getElementById('add-trans').value = ''; 
@@ -234,11 +234,11 @@ async function saveWord() {
 async function adminAddUser() {
     const payload = { action: "addUser", login: document.getElementById('new-login').value, pass: document.getElementById('new-pass').value, tableId: document.getElementById('new-tid').value };
     await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-    showToast('Новый пользователь добавлен!');
+    showToast('Юзер добавлен в мастер-базу!');
 }
 
 function renderTest() {
-    if(!wordsData.length) return document.getElementById('test-word').innerText = 'Загрузка...';
+    if(!wordsData.length) return document.getElementById('test-word').innerText = '...';
     currentWord = wordsData[Math.floor(Math.random() * wordsData.length)];
     document.getElementById('test-word').innerText = currentWord.Армянский || currentWord.Слово || "—";
     document.getElementById('answer-input').value = '';
@@ -247,20 +247,20 @@ function renderTest() {
 function checkAnswer() {
     const input = document.getElementById('answer-input').value.trim().toLowerCase();
     const correct = (currentWord.Русский || currentWord.Перевод || "").toLowerCase();
-    if(input === correct) { showToast('✨ Молодчина!'); setTimeout(renderTest, 1200); }
+    if(input === correct) { showToast('✨ Джан!'); setTimeout(renderTest, 1200); }
     else { showToast(`❌ Правильно: ${correct}`); }
 }
 
 async function renderAlphabet() {
     const data = await syncData('Алфавит');
-    document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква || '—'}</div><div style="font-size:10px; color:#888;">${b.Название || ''} [${b.Звук || ''}]</div></div>`).join('');
+    document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква || '—'}</div><div style="font-size:10px; color:#888;">${b.Название || ''}</div></div>`).join('');
 }
 
 function renderWords() {
     const cont = document.getElementById('words-content');
     const grouped = {};
     wordsData.forEach(w => { const c = w.Категория || 'Общее'; if(!grouped[c]) grouped[c] = []; grouped[c].push(w); });
-    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `<div class="cat-title">${cat}</div>${ws.map(w => `<div class="dict-item"><div><b>${w.Армянский}</b><br><small style="color:#888">${w.Транскрипция}</small></div> <span>${w.Русский}</span></div>`).join('')}`).join('');
+    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `<div class="cat-title">${cat}</div>${ws.map(w => `<div class="dict-item"><div><b>${w.Армянский || w.Слово}</b><br><small style="color:#888">${w.Транскрипция || ''}</small></div> <span>${w.Русский || w.Перевод}</span></div>`).join('')}`).join('');
 }
 
 async function loadLibrary(name, btn) {
@@ -271,7 +271,7 @@ async function loadLibrary(name, btn) {
 function logout() { localStorage.removeItem('arm_session'); location.reload(); }
 function openSettings() { document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active')); document.getElementById('panel-settings').classList.add('active'); }
 function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-function renderCategories() { const cats = ['Урок 1', 'Семья', 'Глаголы', 'Прилагательные']; document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
+function renderCategories() { const cats = ['Урок 1', 'Семья', 'Глаголы']; document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
 
 document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => {
