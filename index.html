@@ -47,9 +47,10 @@
         position: relative;
     }
 
+    /* === ОБНОВЛЕННОЕ МЕНЮ === */
     .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); padding: 0 5px; overflow-x: auto; scrollbar-width: none; }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab { flex: 1; min-width: 80px; padding: 22px 2px; font-size: 11px; font-weight: 700; text-align: center; cursor: pointer; color: var(--light); transition: 0.3s; border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.8px; }
+    .tab { flex: 1; min-width: 85px; padding: 22px 2px; font-size: 11px; font-weight: 700; text-align: center; cursor: pointer; color: var(--light); transition: 0.3s; border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.8px; }
     .tab-icon { font-size: 22px; display: block; margin-bottom: 6px; }
     .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
 
@@ -60,8 +61,6 @@
     .input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--light); margin-bottom: 8px; text-transform: uppercase; }
     input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; background: #fff; }
     input:focus { border-color: var(--red); box-shadow: 0 0 0 5px rgba(232,52,28,0.06); }
-    
-    /* Стилизация подсказки (placeholder) */
     input::placeholder { color: #ccc; font-weight: 300; font-size: 14px; }
 
     .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 16px; font-family: 'DM Sans', sans-serif; }
@@ -89,8 +88,8 @@
 <div class="card">
     <div class="tabs">
         <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
-        <div class="tab" data-tab="add"><span class="tab-icon">➕</span>Слово</div>
-        <div class="tab" data-tab="words"><span class="tab-icon">📚</span>Слова</div>
+        <div class="tab" data-tab="add"><span class="tab-icon">➕</span>Слова</div>
+        <div class="tab" data-tab="words"><span class="tab-icon">📚</span>Словарь</div>
         <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
         <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
     </div>
@@ -121,7 +120,9 @@
         <button class="btn btn-primary" id="save-btn" onclick="saveWord()">Добавить в словарь</button>
     </div>
 
-    <div class="panel" id="panel-words"><div id="words-content">Загрузка...</div></div>
+    <div class="panel" id="panel-words">
+        <div id="words-content">Загрузка словаря...</div>
+    </div>
 
     <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
 
