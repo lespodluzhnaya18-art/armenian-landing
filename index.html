@@ -322,7 +322,30 @@ document.querySelectorAll('.tab').forEach(t => {
         const tab = t.dataset.tab;
         document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
         t.classList.add('active'); document.getElementById('panel-' + tab).classList.add('active');
-        if(tab === 'alphabet') renderAlphabet();
+        if(tab === 'alphabet') async function renderAlphabet() {
+    const data = await syncData('Алфавит');
+    const grid = document.getElementById('alphabet-grid');
+    
+    if (!data || data.length === 0) {
+        grid.innerHTML = 'Загрузите данные в лист Алфавит';
+        return;
+    }
+
+    grid.innerHTML = data.map(b => {
+        // Умный поиск: берем букву, название и звук, даже если заголовки с маленькой буквы или на англ.
+        const letter = b.Буква || b.буква || b.Letter || "—";
+        const name = b.Название || b.название || b.Name || "—";
+        // Проверяем все возможные варианты для звука
+        const sound = b.Звук || b.звук || b.Sound || b.Транскрипция || b.транскрипция || "—";
+        
+        return `
+            <div class="grid-item">
+                <div class="grid-letter">${letter}</div>
+                <div class="grid-info">${name} [${sound}]</div>
+            </div>
+        `;
+    }).join('');
+}
         if(tab === 'words') renderWords();
         if(tab === 'library') loadLibrarySection('Префиксы', document.querySelector('.lib-btn'));
     });
