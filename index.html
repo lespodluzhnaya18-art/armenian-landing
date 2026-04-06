@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🇦🇲 Армянский язык</title>
+<title>🇦🇲 Армянский Язык</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,11 +32,31 @@
         padding: 10px 16px 80px;
     }
 
-    .hero { text-align: center; padding: 40px 0 30px; max-width: 500px; width: 100%; }
-    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(34px, 8vw, 42px); color: var(--dark); }
+    /* === HEADER === */
+    .hero {
+        text-align: center;
+        padding: 50px 0 35px;
+        max-width: 500px;
+        width: 100%;
+    }
+    .hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(34px, 8vw, 44px);
+        letter-spacing: -1px;
+        color: var(--dark);
+        margin: 0;
+        line-height: 1.1;
+    }
     .hero h1 span { color: var(--red); }
-    .hero p { margin-top: 8px; font-size: 14px; color: var(--light); font-weight: 300; }
+    .hero p {
+        margin-top: 10px;
+        font-size: 15px;
+        color: var(--light);
+        font-weight: 300;
+        letter-spacing: 0.5px;
+    }
 
+    /* === CARD === */
     .card {
         background: var(--card);
         border-radius: var(--radius);
@@ -47,7 +67,7 @@
         position: relative;
     }
 
-    /* === ОБНОВЛЕННОЕ МЕНЮ (4 главных раздела + Библиотека) === */
+    /* === TABS (Крупные и читабельные) === */
     .tabs {
         display: flex;
         background: #fafafa;
@@ -56,8 +76,8 @@
     }
     .tab {
         flex: 1;
-        padding: 20px 2px;
-        font-size: 11px;
+        padding: 22px 5px;
+        font-size: 12px;
         font-weight: 700;
         text-align: center;
         cursor: pointer;
@@ -70,35 +90,15 @@
     .tab-icon { font-size: 22px; display: block; margin-bottom: 6px; }
     .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
 
-    /* === ПАНЕЛИ === */
+    /* === PANELS === */
     .panel { display: none; padding: 35px 30px; }
     .panel.active { display: block; }
 
-    /* === БИБЛИОТЕКА (Внутренние подразделы) === */
-    .library-nav {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 25px;
-        overflow-x: auto;
-        padding-bottom: 8px;
-        scrollbar-width: none;
-    }
-    .library-nav::-webkit-scrollbar { display: none; }
-    .lib-btn {
-        padding: 8px 18px;
-        background: #f0f0f0;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-        border: none;
-        color: var(--mid);
-        transition: 0.2s;
-    }
-    .lib-btn.active { background: var(--dark); color: #fff; }
-
     /* === ТЕСТЫ === */
+    .test-mode-toggle { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; }
+    .mode-btn { font-size: 11px; padding: 5px 15px; border-radius: 20px; border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--light); font-weight: 600; text-transform: uppercase; }
+    .mode-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
     .test-box {
         background: linear-gradient(135deg, #fff5f4 0%, #fff 100%);
         border: 1.5px solid #ffd5d0;
@@ -111,40 +111,31 @@
     
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--light); margin-bottom: 8px; text-transform: uppercase; }
-    input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; }
+    input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; transition: 0.2s; }
     input:focus { border-color: var(--red); box-shadow: 0 0 0 5px rgba(232,52,28,0.06); }
 
     .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 16px; }
     .btn-primary { background: var(--red); color: #fff; }
 
-    /* === FLOATING SETTINGS (Левый нижний угол) === */
-    .floating-settings {
-        position: fixed;
-        bottom: 25px;
-        left: 25px;
-        width: 45px;
-        height: 45px;
-        background: rgba(255,255,255,0.7);
-        border: 1px solid var(--border);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 20px;
-        color: var(--light);
-        z-index: 1000;
-        transition: 0.3s;
-        backdrop-filter: blur(8px);
-        opacity: 0.6;
-    }
-    .floating-settings:hover { transform: rotate(45deg); color: var(--red); opacity: 1; background: #fff; }
+    /* === БИБЛИОТЕКА === */
+    .library-nav { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .library-nav::-webkit-scrollbar { display: none; }
+    .lib-btn { padding: 8px 18px; background: #f0f0f0; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; color: var(--mid); }
+    .lib-btn.active { background: var(--dark); color: #fff; }
 
-    /* === LISTS === */
+    /* === Кнопка настройки в углу === */
+    .floating-settings {
+        position: fixed; bottom: 25px; left: 25px; width: 45px; height: 45px;
+        background: rgba(255,255,255,0.7); border: 1px solid var(--border); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        font-size: 20px; color: var(--light); z-index: 1000; transition: 0.3s; backdrop-filter: blur(8px); opacity: 0.6;
+    }
+    .floating-settings:hover { transform: rotate(45deg); color: var(--red); opacity: 1; }
+
+    /* === Списки и Сетка === */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
     .grid-item { background: #fff; border: 1px solid var(--border); padding: 25px 10px; border-radius: var(--radius-sm); text-align: center; }
     .grid-letter { font-family: 'Playfair Display', serif; font-size: 34px; color: var(--red); }
-    
     .dict-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
     .cat-title { font-size: 11px; font-weight: 800; color: var(--red); margin-top: 25px; text-transform: uppercase; border-bottom: 1px solid var(--red-soft); }
 
@@ -155,7 +146,7 @@
 
 <div class="hero">
     <h1>Армянский <span>Язык</span></h1>
-    <p>Системный прогресс по Дарию Степаняну</p>
+    <p>Твой интерактивный путь к армянскому языку</p>
 </div>
 
 <div class="card">
@@ -163,195 +154,4 @@
         <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
         <div class="tab" data-tab="add"><span class="tab-icon">➕</span>Слово</div>
         <div class="tab" data-tab="words"><span class="tab-icon">📚</span>Слова</div>
-        <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
-        <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
-    </div>
-
-    <div class="panel active" id="panel-test">
-        <div class="test-box"><div id="test-word" class="test-armenian">...</div></div>
-        <input type="text" id="answer-input" placeholder="Перевод...">
-        <button class="btn btn-primary" style="margin-top:20px" onclick="checkAnswer()">Проверить ✓</button>
-    </div>
-
-    <div class="panel" id="panel-add">
-        <div class="input-group"><label>Слово</label><input type="text" id="add-arm"></div>
-        <div class="input-group"><label>Транскрипция</label><input type="text" id="add-trans"></div>
-        <div class="input-group"><label>Русский</label><input type="text" id="add-rus"></div>
-        <div class="input-group"><label>Список</label><select id="add-cat"></select></div>
-        <button class="btn btn-primary" onclick="saveWord()">Сохранить</button>
-    </div>
-
-    <div class="panel" id="panel-words">
-        <div id="words-content">Загрузка...</div>
-    </div>
-
-    <div class="panel" id="panel-alphabet">
-        <div class="grid" id="alphabet-grid"></div>
-    </div>
-
-    <div class="panel" id="panel-library">
-        <div class="library-nav">
-            <button class="lib-btn active" onclick="loadLibrarySection('Префиксы', this)">Префиксы</button>
-            <button class="lib-btn" onclick="loadLibrarySection('Суффиксы', this)">Суффиксы</button>
-            <button class="lib-btn" onclick="loadLibrarySection('Части слова', this)">Части слова</button>
-        </div>
-        <div id="library-content">Выберите раздел выше</div>
-    </div>
-
-    <div class="panel" id="panel-settings">
-        <div class="input-group"><label>Script URL (Ключ доступа)</label><input type="text" id="url-input"></div>
-        <button class="btn btn-primary" onclick="saveSettings()">Сохранить настройки</button>
-        <div class="input-group" style="margin-top:30px;">
-            <label>Создать категорию слов</label>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="new-cat-input" style="flex:1">
-                <button onclick="addCategory()" style="width:50px; background:var(--red); border:none; color:#fff; border-radius:15px">+</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="floating-settings" title="Настройки" onclick="openSettings()">⚙️</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-let SCRIPT_URL = localStorage.getItem('arm_exec_url') || 'ВСТАВЬ_СВОЙ_EXEC_URL';
-let categories = JSON.parse(localStorage.getItem('arm_cats')) || ['Урок 1', 'Семья'];
-let wordsData = [];
-let currentWord = null;
-
-async function init() {
-    document.getElementById('url-input').value = SCRIPT_URL;
-    renderCategories();
-    await syncData('Слова');
-    renderTest();
-}
-
-async function syncData(sheet) {
-    try {
-        const res = await fetch(`${SCRIPT_URL}?sheet=${encodeURIComponent(sheet)}`);
-        const data = await res.json();
-        if (sheet === 'Слова') wordsData = data;
-        return data;
-    } catch(e) { return []; }
-}
-
-function renderTest() {
-    if(!wordsData.length) return document.getElementById('test-word').innerText = 'Нет данных';
-    currentWord = wordsData[Math.floor(Math.random() * wordsData.length)];
-    document.getElementById('test-word').innerText = currentWord.Армянский;
-    document.getElementById('answer-input').value = '';
-}
-
-function checkAnswer() {
-    const input = document.getElementById('answer-input').value.trim().toLowerCase();
-    if(input === currentWord.Русский.toLowerCase()) { 
-        showToast('✨ Правильно!'); 
-        setTimeout(renderTest, 1200); 
-    } else { 
-        showToast(`❌ Ожидалось: ${currentWord.Русский}`); 
-    }
-}
-
-async function saveWord() {
-    const data = {
-        targetSheet: 'Слова',
-        category: document.getElementById('add-cat').value,
-        word: document.getElementById('add-arm').value.trim(),
-        transcription: document.getElementById('add-trans').value.trim(),
-        translation: document.getElementById('add-rus').value.trim()
-    };
-    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-    showToast('✓ Слово добавлено!');
-    syncData('Слова');
-}
-
-async function loadLibrarySection(name, btn) {
-    document.querySelectorAll('.lib-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const cont = document.getElementById('library-content');
-    cont.innerHTML = '<p style="color:var(--light)">Загрузка разделов Библиотеки...</p>';
-    
-    const data = await syncData(name);
-    if(!data.length || data.error) { 
-        cont.innerHTML = `<p style="color:var(--mid); padding:20px 0;">Лист "${name}" пока пуст или не создан в Google Таблице.</p>`; 
-        return; 
-    }
-    
-    cont.innerHTML = data.map(item => `
-        <div class="dict-item">
-            <b style="font-family:'Playfair Display',serif; font-size:19px">${item.Префикс || item.Часть || item.Слово || '—'}</b>
-            <span style="font-size:14px; color:var(--mid); text-align:right;">${item.Значение || item.Перевод || '—'}</span>
-        </div>
-    `).join('');
-}
-
-async function renderAlphabet() {
-    const data = await syncData('Алфавит');
-    const grid = document.getElementById('alphabet-grid');
-    grid.innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква}</div><div style="font-size:11px; color:var(--light)">${b.Название} [${b.Звук}]</div></div>`).join('');
-}
-
-function renderWords() {
-    const cont = document.getElementById('words-content');
-    const grouped = {};
-    wordsData.forEach(w => { if(!grouped[w.Категория]) grouped[w.Категория] = []; grouped[w.Категория].push(w); });
-    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `
-        <div class="cat-title">${cat}</div>
-        ${ws.map(w => `<div class="dict-item"><b>${w.Армянский}</b> <span>${w.Русский}</span></div>`).join('')}
-    `).join('');
-}
-
-function openSettings() {
-    document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
-    document.getElementById('panel-settings').classList.add('active');
-    showToast('Настройки');
-}
-
-function renderCategories() { document.getElementById('add-cat').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join(''); }
-function addCategory() {
-    const val = document.getElementById('new-cat-input').value.trim();
-    if(val) { categories.push(val); localStorage.setItem('arm_cats', JSON.stringify(categories)); renderCategories(); document.getElementById('new-cat-input').value = ''; showToast('Категория добавлена'); }
-}
-function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
-function saveSettings() { localStorage.setItem('arm_exec_url', document.getElementById('url-input').value.trim()); location.reload(); }
-
-document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-        const tab = t.dataset.tab;
-        document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
-        t.classList.add('active'); document.getElementById('panel-' + tab).classList.add('active');
-        if(tab === 'alphabet') async function renderAlphabet() {
-    const data = await syncData('Алфавит');
-    const grid = document.getElementById('alphabet-grid');
-    
-    if (!data || data.length === 0) {
-        grid.innerHTML = 'Загрузите данные в лист Алфавит';
-        return;
-    }
-
-    grid.innerHTML = data.map(b => {
-        // Умный поиск: берем букву, название и звук, даже если заголовки с маленькой буквы или на англ.
-        const letter = b.Буква || b.буква || b.Letter || "—";
-        const name = b.Название || b.название || b.Name || "—";
-        // Проверяем все возможные варианты для звука
-        const sound = b.Звук || b.звук || b.Sound || b.Транскрипция || b.транскрипция || "—";
-        
-        return `
-            <div class="grid-item">
-                <div class="grid-letter">${letter}</div>
-                <div class="grid-info">${name} [${sound}]</div>
-            </div>
-        `;
-    }).join('');
-}
-        if(tab === 'words') renderWords();
-        if(tab === 'library') loadLibrarySection('Префиксы', document.querySelector('.lib-btn'));
-    });
-});
-
-init();
-</script>
-</body>
-</html>
+        <div class="tab" data-tab="alphabet"><span class="tab-icon
