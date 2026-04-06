@@ -3,162 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🇦🇲 Армянский Язык | App</title>
+<title>🇦🇲 Армянский Язык | Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    
     :root {
-        --red: #E8341C;
-        --red-soft: #fff1ee;
-        --dark: #1a1a1a;
-        --mid: #555;
-        --light: #888;
-        --border: #e8e8e8;
-        --bg: #f7f5f2;
-        --card: #ffffff;
-        --radius: 32px;
-        --radius-sm: 18px;
+        --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --mid: #555;
+        --light: #888; --border: #e8e8e8; --bg: #f7f5f2; --card: #ffffff;
+        --radius: 32px; --radius-sm: 18px;
     }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 12px 100px; }
 
-    body {
-        font-family: 'DM Sans', sans-serif;
-        background: var(--bg);
-        color: var(--dark);
-        min-height: 100vh;
-        display: flex; flex-direction: column; align-items: center;
-        padding: 0 12px 100px; /* Отступ снизу для мобильного меню */
-    }
+    #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .auth-card { background: #fff; padding: 40px 25px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
 
-    /* === ЭКРАН ВХОДА === */
-    #auth-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: var(--bg); z-index: 5000;
-        display: flex; align-items: center; justify-content: center;
-        padding: 20px;
-    }
-    .auth-card {
-        background: #fff; padding: 40px 25px; border-radius: var(--radius);
-        width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 10px; }
-
-    /* === ОСНОВНОЕ ПРИЛОЖЕНИЕ === */
     #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .hero { text-align: center; padding: 40px 0 25px; }
-    .hero h1 { font-family: 'Playfair Display', serif; font-size: 36px; line-height: 1; }
+    .hero { text-align: center; padding: 45px 0 30px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 38px; line-height: 1.1; margin-bottom: 8px; }
     .hero h1 span { color: var(--red); }
-    .hero p { font-size: 14px; color: var(--light); margin-top: 8px; font-weight: 300; }
+    .hero p { font-size: 15px; color: var(--light); font-weight: 300; }
 
-    .card { 
-        background: var(--card); 
-        border-radius: var(--radius); 
-        box-shadow: 0 15px 45px rgba(0,0,0,0.05); 
-        overflow: hidden; 
-        position: relative;
-        width: 100%;
-    }
-
-    /* === МОБИЛЬНЫЕ ТАБЫ (Горизонтальный скролл если нужно) === */
-    .tabs { 
-        display: flex; 
-        background: #fafafa; 
-        border-bottom: 1px solid var(--border);
-        overflow-x: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    .tabs::-webkit-scrollbar { display: none; }
-    
-    .tab { 
-        flex: 1; 
-        min-width: 80px; 
-        padding: 18px 5px; 
-        font-size: 10px; 
-        font-weight: 800; 
-        text-align: center; 
-        cursor: pointer; 
-        color: var(--light); 
-        border-bottom: 3px solid transparent; 
-        text-transform: uppercase;
-        transition: 0.2s;
-    }
-    .tab-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
+    .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+    .tab { flex: 1; min-width: 85px; padding: 20px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tab-icon { font-size: 22px; display: block; margin-bottom: 5px; }
     .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
 
-    .panel { display: none; padding: 30px 20px; }
+    .panel { display: none; padding: 30px 25px; }
     .panel.active { display: block; }
 
-    /* === ТЕСТЫ (Адаптация шрифта) === */
-    .test-word-display {
-        font-family: 'Playfair Display', serif;
-        font-size: clamp(40px, 12vw, 56px);
-        text-align: center;
-        margin: 30px 0;
-        color: var(--dark);
-        word-break: break-word;
-    }
+    .test-word { font-family: 'Playfair Display', serif; font-size: 52px; text-align: center; margin: 40px 0; color: var(--dark); }
 
     .input-group { margin-bottom: 20px; text-align: left; }
-    .input-group label { display: block; font-size: 10px; font-weight: 800; color: var(--light); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-    input, select { 
-        width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); 
-        font-size: 16px; outline: none; background: #fff; transition: 0.2s; 
-    }
-    input:focus { border-color: var(--red); background: #fff; }
-    input::placeholder { color: #ccc; }
-
-    .btn { 
-        width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; 
-        font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s; 
-        font-family: 'DM Sans', sans-serif;
-    }
-    .btn-primary { background: var(--red); color: #fff; box-shadow: 0 4px 15px rgba(232,52,28,0.15); }
-    .btn-primary:active { transform: scale(0.98); }
+    .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--light); margin-bottom: 6px; text-transform: uppercase; }
+    input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; background: #fff; }
+    
+    .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s; font-family: 'DM Sans', sans-serif; }
+    .btn-primary { background: var(--red); color: #fff; }
     .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--mid); margin-top: 10px; }
 
-    /* === НАСТРОЙКИ (Floating) === */
-    .floating-settings { 
-        position: fixed; bottom: 25px; left: 25px; width: 50px; height: 50px; 
-        background: rgba(255,255,255,0.9); border: 1px solid var(--border); 
-        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        backdrop-filter: blur(5px);
-    }
+    .floating-settings { position: fixed; bottom: 25px; left: 25px; width: 50px; height: 50px; background: #fff; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .admin-badge { background: var(--red-soft); color: var(--red); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; display: inline-block; margin-bottom: 15px; }
 
-    /* === СПИСКИ === */
-    .dict-item { padding: 16px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
-    .dict-item b { font-family: 'Playfair Display', serif; font-size: 18px; }
+    .dict-item { padding: 15px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
+    .dict-item b { font-family: 'Playfair Display', serif; font-size: 20px; }
     .cat-title { font-size: 11px; font-weight: 800; color: var(--red); margin-top: 25px; text-transform: uppercase; border-bottom: 1px solid var(--red-soft); padding-bottom: 6px; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
-    .grid-item { background: #fff; border: 1px solid var(--border); padding: 15px 5px; border-radius: var(--radius-sm); text-align: center; }
-    .grid-letter { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--red); }
-
-    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 14px 30px; border-radius: 40px; font-size: 13px; display: none; z-index: 10000; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 12px; }
+    .grid-item { background: #fff; border: 1px solid var(--border); padding: 20px 5px; border-radius: var(--radius-sm); text-align: center; }
+    .grid-letter { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--red); }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 15px 35px; border-radius: 40px; font-size: 14px; display: none; z-index: 10000; }
 </style>
 </head>
 <body>
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2>Барев, Джан! 🇦🇲</h2>
-        <p style="margin-bottom: 25px; font-size: 14px; color: var(--light);">Твой личный кабинет для изучения языка</p>
-        
+        <h2 style="font-family:'Playfair Display', serif; font-size: 28px; margin-bottom: 10px;">Барев, Джан! 🇦🇲</h2>
+        <p style="font-size:14px; color:#888; margin-bottom:25px;">Войди в свой личный профиль</p>
         <div class="input-group">
-            <label>Твой Логин</label>
-            <input type="email" id="auth-email" placeholder="example@mail.ru" autocomplete="email">
+            <label>Фамилия</label>
+            <input type="text" id="auth-login" placeholder="Логин">
         </div>
         <div class="input-group">
             <label>Пароль</label>
-            <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
+            <input type="password" id="auth-pass" placeholder="••••">
         </div>
-        
-        <button class="btn btn-primary" onclick="handleLogin()">Войти в аккаунт</button>
-        <button class="btn btn-outline" onclick="handleLogin()">Зарегистрироваться</button>
+        <button class="btn btn-primary" onclick="handleLogin()">Войти</button>
     </div>
 </div>
 
@@ -178,217 +91,128 @@
         </div>
 
         <div class="panel active" id="panel-test">
-            <div id="test-word" class="test-word-display">Загрузка...</div>
-            <div class="input-group">
-                <input type="text" id="answer-input" placeholder="Перевод на русский..." autocomplete="off">
-            </div>
-            <button class="btn btn-primary" onclick="checkAnswer()">Проверить ✓</button>
+            <div id="test-word" class="test-word">...</div>
+            <input type="text" id="answer-input" placeholder="Перевод..." autocomplete="off">
+            <button class="btn btn-primary" style="margin-top:20px" onclick="checkAnswer()">Проверить ✓</button>
         </div>
 
         <div class="panel" id="panel-add">
-            <div class="input-group"><label>Слово на армянском</label><input type="text" id="add-arm" placeholder="Напр: Բարև"></div>
-            <div class="input-group"><label>Транскрипция</label><input type="text" id="add-trans" placeholder="Напр: Barev"></div>
-            <div class="input-group"><label>Перевод</label><input type="text" id="add-rus" placeholder="Напр: Привет"></div>
-            <div class="input-group">
-                <label>Выбрать список</label>
-                <select id="add-cat"></select>
-            </div>
+            <div class="input-group"><label>Армянское слово</label><input type="text" id="add-arm"></div>
+            <div class="input-group"><label>Транскрипция</label><input type="text" id="add-trans"></div>
+            <div class="input-group"><label>Перевод</label><input type="text" id="add-rus"></div>
+            <div class="input-group"><label>Категория</label><select id="add-cat"></select></div>
             <button class="btn btn-primary" id="save-btn" onclick="saveWord()">Добавить в словарь</button>
         </div>
 
-        <div class="panel" id="panel-words">
-            <div id="words-content">Синхронизация словаря...</div>
-        </div>
-
-        <div class="panel" id="panel-alphabet">
-            <div class="grid" id="alphabet-grid"></div>
-        </div>
-
-        <div class="panel" id="panel-library">
-            <div style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto;">
-                <button class="btn" style="padding:10px; font-size:11px; background:#eee;" onclick="loadLibrarySection('Префиксы', this)">Префиксы</button>
-                <button class="btn" style="padding:10px; font-size:11px; background:#eee;" onclick="loadLibrarySection('Суффиксы', this)">Суффиксы</button>
-            </div>
-            <div id="library-content">Выберите нужный раздел</div>
-        </div>
+        <div class="panel" id="panel-words"><div id="words-content">Загрузка...</div></div>
+        <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
+        <div class="panel" id="panel-library"><div id="lib-content">В разработке...</div></div>
 
         <div class="panel" id="panel-settings">
-            <p id="user-info" style="font-size:12px; color:var(--light); margin-bottom:20px;"></p>
-            <div class="input-group">
-                <label>Твой Script URL (Ключ таблицы)</label>
-                <input type="text" id="url-input" placeholder="https://script.google.com/...">
-            </div>
-            <button class="btn btn-primary" onclick="saveSettings()">Сохранить настройки</button>
+            <div id="admin-badge-box"></div>
+            <p id="user-info" style="font-size:13px; color:var(--light); margin-bottom:20px;"></p>
             
-            <div class="input-group" style="margin-top:30px;">
-                <label>Добавить новую категорию</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="new-cat-input" style="flex:1" placeholder="Урок 2...">
-                    <button onclick="addCategory()" style="width:50px; background:var(--red); color:#fff; border-radius:15px; border:none; font-size:20px;">+</button>
-                </div>
+            <div id="admin-panel" style="display:none; border-top:1px dashed var(--red); padding-top:20px;">
+                <h3 style="font-size:14px; margin-bottom:15px; color:var(--red)">Панель Админа</h3>
+                <div class="input-group"><label>Фамилия юзера</label><input type="text" id="new-login"></div>
+                <div class="input-group"><label>Пароль</label><input type="text" id="new-pass"></div>
+                <div class="input-group"><label>ID таблицы</label><input type="text" id="new-tid"></div>
+                <button class="btn btn-primary" onclick="adminAddUser()">Создать аккаунт</button>
             </div>
-            
-            <button class="btn btn-outline" style="margin-top:40px; color:var(--red); border-color:var(--red-soft)" onclick="handleLogout()">Выйти из аккаунта</button>
+
+            <button class="btn btn-outline" style="margin-top:40px; color:var(--red)" onclick="logout()">Выйти</button>
         </div>
     </div>
 </div>
 
 <div class="floating-settings" onclick="openSettings()">⚙️</div>
-<div class="toast" id="toast"></div>
+<div id="toast" class="toast"></div>
 
 <script>
-let currentUser = localStorage.getItem('arm_user') || null;
-let SCRIPT_URL = "";
+const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyrRM1T5J4aphlqlep6lbLksFrzqtKTFcHQSKqF51_g02nzbE_VSDCyNjOl4uYuo2G/exec";
+
+let currentUser = JSON.parse(localStorage.getItem('arm_session')) || null;
 let wordsData = [];
 let currentWord = null;
 
-// --- АВТОРИЗАЦИЯ И "ПАМЯТЬ" ---
-function checkAuth() {
-    if(currentUser) {
-        // Если пользователь есть в памяти, подтягиваем его личный URL
-        SCRIPT_URL = localStorage.getItem('arm_url_' + currentUser) || "";
-        showApp();
-    }
-}
-
-function handleLogin() {
-    const email = document.getElementById('auth-email').value.trim();
+async function handleLogin() {
+    const login = document.getElementById('auth-login').value.trim();
     const pass = document.getElementById('auth-pass').value.trim();
-    
-    if(email && pass) {
-        currentUser = email;
-        localStorage.setItem('arm_user', email); // Запоминаем логин
-        SCRIPT_URL = localStorage.getItem('arm_url_' + email) || "";
-        showApp();
-        showToast('Рады видеть тебя, джан!');
-    } else {
-        showToast('Введите почту и пароль');
-    }
-}
+    if(!login || !pass) return showToast('Заполните поля');
 
-function handleLogout() {
-    localStorage.removeItem('arm_user'); // Стираем только статус "вошел"
-    location.reload();
+    showToast('Синхронизация...');
+    try {
+        const res = await fetch(`${MASTER_SCRIPT_URL}?action=login&login=${encodeURIComponent(login)}&pass=${encodeURIComponent(pass)}`);
+        const result = await res.json();
+        if(result.success) {
+            currentUser = { login, tableId: result.tableId, role: result.role };
+            localStorage.setItem('arm_session', JSON.stringify(currentUser));
+            location.reload();
+        } else { showToast(result.message); }
+    } catch(e) { showToast('Ошибка соединения'); }
 }
 
 function showApp() {
     document.getElementById('auth-overlay').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    document.getElementById('user-info').innerText = 'Аккаунт: ' + currentUser;
-    document.getElementById('url-input').value = SCRIPT_URL;
+    document.getElementById('user-info').innerText = `Профиль: ${currentUser.login}`;
+    if(currentUser.role === 'admin') {
+        document.getElementById('admin-panel').style.display = 'block';
+        document.getElementById('admin-badge-box').innerHTML = '<span class="admin-badge">ADMIN MODE</span>';
+    }
     renderCategories();
-    if(SCRIPT_URL) { syncData('Слова').then(() => renderTest()); }
+    syncData('Слова').then(() => renderTest());
 }
 
-// --- СИНХРОНИЗАЦИЯ ---
 async function syncData(sheet) {
-    if(!SCRIPT_URL) return [];
-    try {
-        const res = await fetch(`${SCRIPT_URL}?sheet=${encodeURIComponent(sheet)}`);
-        const data = await res.json();
-        if (sheet === 'Слова') wordsData = data;
-        return data;
-    } catch(e) { return []; }
+    const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${currentUser.tableId}&sheet=${encodeURIComponent(sheet)}`);
+    const data = await res.json();
+    if(sheet === 'Слова') wordsData = data;
+    return data;
 }
 
 async function saveWord() {
-    const data = {
-        targetSheet: 'Слова',
-        category: document.getElementById('add-cat').value,
-        word: document.getElementById('add-arm').value.trim(),
-        transcription: document.getElementById('add-trans').value.trim(),
-        translation: document.getElementById('add-rus').value.trim()
-    };
-    if(!data.word || !data.translation) return showToast('Заполни поля!');
-    
-    const btn = document.getElementById('save-btn');
-    btn.innerText = 'Синхронизация...';
-    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-    showToast('✓ Добавлено в словарь!');
-    btn.innerText = 'Добавить в словарь';
-    document.getElementById('add-arm').value = '';
-    document.getElementById('add-trans').value = '';
-    document.getElementById('add-rus').value = '';
+    const data = { action: "addWord", tableId: currentUser.tableId, category: document.getElementById('add-cat').value, word: document.getElementById('add-arm').value, transcription: document.getElementById('add-trans').value, translation: document.getElementById('add-rus').value };
+    await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+    showToast('✓ Добавлено!');
     syncData('Слова');
 }
 
-function renderWords() {
-    const cont = document.getElementById('words-content');
-    if(!wordsData.length) return cont.innerHTML = '<p style="text-align:center; color:#888;">Словарь пока пуст. Добавь первое слово!</p>';
-    const grouped = {};
-    wordsData.forEach(w => { 
-        const c = w.Категория || 'Общее';
-        if(!grouped[c]) grouped[c] = []; 
-        grouped[c].push(w); 
-    });
-    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `
-        <div class="cat-title">${cat}</div>
-        ${ws.map(w => `<div class="dict-item"><div><b>${w.Армянский}</b><br><small style="color:#888">${w.Транскрипция}</small></div> <span>${w.Русский}</span></div>`).join('')}
-    `).join('');
-}
-
-async function renderAlphabet() {
-    const grid = document.getElementById('alphabet-grid');
-    grid.innerHTML = 'Загрузка...';
-    const data = await syncData('Алфавит');
-    grid.innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква}</div><div style="font-size:10px; color:#888;">${b.Название} [${b.Звук}]</div></div>`).join('');
-}
-
-async function loadLibrarySection(name, btn) {
-    const cont = document.getElementById('library-content');
-    cont.innerHTML = 'Синхронизация...';
-    const data = await syncData(name);
-    cont.innerHTML = data.map(item => `<div class="dict-item"><b>${item.Префикс || item.Часть || '—'}</b> <span>${item.Значение || item.Перевод || '—'}</span></div>`).join('');
-}
-
-// --- УТИЛИТЫ ---
-function openSettings() {
-    document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
-    document.getElementById('panel-settings').classList.add('active');
-}
-
-function saveSettings() {
-    const url = document.getElementById('url-input').value.trim();
-    localStorage.setItem('arm_url_' + currentUser, url);
-    location.reload();
-}
-
-function renderCategories() {
-    const cats = JSON.parse(localStorage.getItem('arm_cats')) || ['Урок 1', 'Семья'];
-    document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-}
-
-function addCategory() {
-    const val = document.getElementById('new-cat-input').value.trim();
-    if(val) {
-        let cats = JSON.parse(localStorage.getItem('arm_cats')) || ['Урок 1', 'Семья'];
-        if(!cats.includes(val)) {
-            cats.push(val);
-            localStorage.setItem('arm_cats', JSON.stringify(cats));
-            renderCategories();
-            document.getElementById('new-cat-input').value = '';
-            showToast('Категория добавлена!');
-        }
-    }
+async function adminAddUser() {
+    const payload = { action: "addUser", login: document.getElementById('new-login').value, pass: document.getElementById('new-pass').value, tableId: document.getElementById('new-tid').value };
+    await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast('Юзер зарегистрирован!');
 }
 
 function renderTest() {
-    if(!wordsData.length) return document.getElementById('test-word').innerText = 'Добавьте слова';
+    if(!wordsData.length) return document.getElementById('test-word').innerText = 'Словарь пуст';
     currentWord = wordsData[Math.floor(Math.random() * wordsData.length)];
-    document.getElementById('test-word').innerText = currentWord.Армянский;
-    document.getElementById('answer-input').value = '';
+    document.getElementById('test-word').innerText = currentWord.Армянский || currentWord.Слово || "—";
 }
 
 function checkAnswer() {
     const input = document.getElementById('answer-input').value.trim().toLowerCase();
-    if(input === currentWord.Русский.toLowerCase()) {
-        showToast('✨ Молодчина!'); setTimeout(renderTest, 1200);
-    } else {
-        showToast(`❌ Правильно: ${currentWord.Русский}`);
-    }
+    const correct = (currentWord.Русский || currentWord.Перевод || "").toLowerCase();
+    if(input === correct) { showToast('✨ Джан!'); setTimeout(renderTest, 1200); }
+    else { showToast(`❌ Правильно: ${correct}`); }
 }
 
-function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2500); }
+async function renderAlphabet() {
+    const data = await syncData('Алфавит');
+    document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква}</div><div style="font-size:10px; color:#888;">${b.Название} [${b.Звук}]</div></div>`).join('');
+}
+
+function renderWords() {
+    const cont = document.getElementById('words-content');
+    const grouped = {};
+    wordsData.forEach(w => { const c = w.Категория || 'Общее'; if(!grouped[c]) grouped[c] = []; grouped[c].push(w); });
+    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `<div class="cat-title">${cat}</div>${ws.map(w => `<div class="dict-item"><b>${w.Армянский}</b> <span>${w.Русский}</span></div>`).join('')}`).join('');
+}
+
+function logout() { localStorage.removeItem('arm_session'); location.reload(); }
+function openSettings() { document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active')); document.getElementById('panel-settings').classList.add('active'); }
+function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+function renderCategories() { const cats = ['Урок 1', 'Семья']; document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
 
 document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => {
@@ -400,8 +224,7 @@ document.querySelectorAll('.tab').forEach(t => {
     });
 });
 
-// ЗАПУСК
-checkAuth();
+if(currentUser) showApp();
 </script>
 </body>
 </html>
