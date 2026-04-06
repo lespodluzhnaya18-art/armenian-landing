@@ -3,54 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🇦🇲 Армянский Язык | Platform</title>
+<title>🇦🇲 Армянский Язык | Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+    /* Стили оставляем те же, они идеальны */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    :root {
-        --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --mid: #555;
-        --light: #888; --border: #e8e8e8; --bg: #f7f5f2; --card: #ffffff;
-        --radius: 32px; --radius-sm: 18px;
-    }
+    :root { --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --mid: #555; --light: #888; --border: #e8e8e8; --bg: #f7f5f2; --card: #ffffff; --radius: 32px; --radius-sm: 18px; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 12px 100px; }
-
     #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .auth-card { background: #fff; padding: 40px 25px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
-
-    #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+    #main-app { display: none; width: 100%; max-width: 500px; }
     .hero { text-align: center; padding: 45px 0 30px; }
     .hero h1 { font-family: 'Playfair Display', serif; font-size: 38px; line-height: 1.1; margin-bottom: 8px; }
     .hero h1 span { color: var(--red); }
-    .hero p { font-size: 15px; color: var(--light); font-weight: 300; }
-
     .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
     .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-    .tab { flex: 1; min-width: 85px; padding: 20px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 0.5px; }
-    .tab-icon { font-size: 22px; display: block; margin-bottom: 5px; }
+    .tab { flex: 1; min-width: 85px; padding: 20px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; }
     .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
-
+    .tab-icon { font-size: 22px; display: block; margin-bottom: 5px; }
     .panel { display: none; padding: 30px 25px; }
     .panel.active { display: block; }
-
     .test-word { font-family: 'Playfair Display', serif; font-size: 52px; text-align: center; margin: 40px 0; color: var(--dark); }
-
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--light); margin-bottom: 6px; text-transform: uppercase; }
     input, select { width: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; background: #fff; }
-    
     .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.2s; font-family: 'DM Sans', sans-serif; }
     .btn-primary { background: var(--red); color: #fff; }
     .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--mid); margin-top: 10px; }
-
     .floating-settings { position: fixed; bottom: 25px; left: 25px; width: 50px; height: 50px; background: #fff; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .admin-badge { background: var(--red-soft); color: var(--red); padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; display: inline-block; margin-bottom: 15px; }
-
     .dict-item { padding: 15px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
     .dict-item b { font-family: 'Playfair Display', serif; font-size: 20px; }
     .cat-title { font-size: 11px; font-weight: 800; color: var(--red); margin-top: 25px; text-transform: uppercase; border-bottom: 1px solid var(--red-soft); padding-bottom: 6px; }
-
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 12px; }
     .grid-item { background: #fff; border: 1px solid var(--border); padding: 20px 5px; border-radius: var(--radius-sm); text-align: center; }
     .grid-letter { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--red); }
@@ -62,16 +45,16 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2 style="font-family:'Playfair Display', serif; font-size: 28px; margin-bottom: 10px;">Барев, Джан! 🇦🇲</h2>
-        <p style="font-size:14px; color:#888; margin-bottom:25px;">Войди в свой личный профиль</p>
+        <p id="auth-status" style="font-size:14px; color:#888; margin-bottom:25px;">Введите вашу фамилию</p>
         <div class="input-group">
             <label>Фамилия</label>
-            <input type="text" id="auth-login" placeholder="Логин">
+            <input type="text" id="auth-login" placeholder="Подлужная">
         </div>
         <div class="input-group">
             <label>Пароль</label>
             <input type="password" id="auth-pass" placeholder="••••">
         </div>
-        <button class="btn btn-primary" onclick="handleLogin()">Войти</button>
+        <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Войти в систему</button>
     </div>
 </div>
 
@@ -106,10 +89,9 @@
 
         <div class="panel" id="panel-words"><div id="words-content">Загрузка...</div></div>
         <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
-        <div class="panel" id="panel-library"><div id="lib-content">В разработке...</div></div>
+        <div class="panel" id="panel-library"><div id="lib-content">Раздел в разработке...</div></div>
 
         <div class="panel" id="panel-settings">
-            <div id="admin-badge-box"></div>
             <p id="user-info" style="font-size:13px; color:var(--light); margin-bottom:20px;"></p>
             
             <div id="admin-panel" style="display:none; border-top:1px dashed var(--red); padding-top:20px;">
@@ -120,7 +102,7 @@
                 <button class="btn btn-primary" onclick="adminAddUser()">Создать аккаунт</button>
             </div>
 
-            <button class="btn btn-outline" style="margin-top:40px; color:var(--red)" onclick="logout()">Выйти</button>
+            <button class="btn btn-outline" style="margin-top:40px; color:var(--red)" onclick="logout()">Выйти из системы</button>
         </div>
     </div>
 </div>
@@ -129,90 +111,169 @@
 <div id="toast" class="toast"></div>
 
 <script>
-const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyrRM1T5J4aphlqlep6lbLksFrzqtKTFcHQSKqF51_g02nzbE_VSDCyNjOl4uYuo2G/exec";
+// ВСТАВЬ СЮДА СВОЙ URL МАСТЕР-СКРИПТА
+const MASTER_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyrRM1T5J4aphlqlep6lbLksFrzqtKTFcHQSKqF51_g02nzbE_VSDCyNjOl4uYuo2G/exec"; 
 
 let currentUser = JSON.parse(localStorage.getItem('arm_session')) || null;
 let wordsData = [];
 let currentWord = null;
 
+// ПРОВЕРКА ВХОДА ПРИ ЗАГРУЗКЕ
+async function checkSession() {
+    if (currentUser && currentUser.tableId) {
+        showApp();
+    }
+}
+
 async function handleLogin() {
     const login = document.getElementById('auth-login').value.trim();
     const pass = document.getElementById('auth-pass').value.trim();
-    if(!login || !pass) return showToast('Заполните поля');
+    if(!login || !pass) return showToast('Введите данные');
 
-    showToast('Синхронизация...');
+    const btn = document.getElementById('login-btn');
+    btn.innerText = 'Проверка...';
+    btn.disabled = true;
+
     try {
         const res = await fetch(`${MASTER_SCRIPT_URL}?action=login&login=${encodeURIComponent(login)}&pass=${encodeURIComponent(pass)}`);
         const result = await res.json();
+        
         if(result.success) {
             currentUser = { login, tableId: result.tableId, role: result.role };
             localStorage.setItem('arm_session', JSON.stringify(currentUser));
-            location.reload();
-        } else { showToast(result.message); }
-    } catch(e) { showToast('Ошибка соединения'); }
+            showApp();
+        } else { 
+            showToast(result.message || 'Ошибка входа'); 
+            btn.innerText = 'Войти в систему';
+            btn.disabled = false;
+        }
+    } catch(e) { 
+        showToast('Ошибка соединения. Проверьте ссылку в коде!');
+        btn.innerText = 'Войти в систему';
+        btn.disabled = false;
+    }
 }
 
 function showApp() {
     document.getElementById('auth-overlay').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    document.getElementById('user-info').innerText = `Профиль: ${currentUser.login}`;
+    document.getElementById('user-info').innerText = `Профиль: ${currentUser.login} (${currentUser.role})`;
+    
     if(currentUser.role === 'admin') {
         document.getElementById('admin-panel').style.display = 'block';
-        document.getElementById('admin-badge-box').innerHTML = '<span class="admin-badge">ADMIN MODE</span>';
     }
+    
     renderCategories();
     syncData('Слова').then(() => renderTest());
 }
 
 async function syncData(sheet) {
-    const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${currentUser.tableId}&sheet=${encodeURIComponent(sheet)}`);
-    const data = await res.json();
-    if(sheet === 'Слова') wordsData = data;
-    return data;
+    if (!currentUser.tableId) return [];
+    try {
+        const res = await fetch(`${MASTER_SCRIPT_URL}?action=fetch&tableId=${currentUser.tableId}&sheet=${encodeURIComponent(sheet)}`);
+        const data = await res.json();
+        if(sheet === 'Слова') wordsData = data;
+        return data;
+    } catch(e) { 
+        console.error('Ошибка синхронизации', e);
+        return []; 
+    }
 }
 
 async function saveWord() {
-    const data = { action: "addWord", tableId: currentUser.tableId, category: document.getElementById('add-cat').value, word: document.getElementById('add-arm').value, transcription: document.getElementById('add-trans').value, translation: document.getElementById('add-rus').value };
+    const data = { 
+        action: "addWord", 
+        tableId: currentUser.tableId, 
+        category: document.getElementById('add-cat').value, 
+        word: document.getElementById('add-arm').value, 
+        transcription: document.getElementById('add-trans').value, 
+        translation: document.getElementById('add-rus').value 
+    };
+    
+    const btn = document.getElementById('save-btn');
+    btn.innerText = 'Сохранение...';
+    
     await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-    showToast('✓ Добавлено!');
+    showToast('✓ В словаре!');
+    btn.innerText = 'Добавить в словарь';
+    
+    document.getElementById('add-arm').value = ''; 
+    document.getElementById('add-trans').value = ''; 
+    document.getElementById('add-rus').value = '';
     syncData('Слова');
 }
 
 async function adminAddUser() {
-    const payload = { action: "addUser", login: document.getElementById('new-login').value, pass: document.getElementById('new-pass').value, tableId: document.getElementById('new-tid').value };
+    const payload = { 
+        action: "addUser", 
+        login: document.getElementById('new-login').value, 
+        pass: document.getElementById('new-pass').value, 
+        tableId: document.getElementById('new-tid').value 
+    };
     await fetch(MASTER_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-    showToast('Юзер зарегистрирован!');
+    showToast('Юзер добавлен в мастер-базу!');
 }
 
 function renderTest() {
     if(!wordsData.length) return document.getElementById('test-word').innerText = 'Словарь пуст';
     currentWord = wordsData[Math.floor(Math.random() * wordsData.length)];
     document.getElementById('test-word').innerText = currentWord.Армянский || currentWord.Слово || "—";
+    document.getElementById('answer-input').value = '';
 }
 
 function checkAnswer() {
     const input = document.getElementById('answer-input').value.trim().toLowerCase();
     const correct = (currentWord.Русский || currentWord.Перевод || "").toLowerCase();
-    if(input === correct) { showToast('✨ Джан!'); setTimeout(renderTest, 1200); }
-    else { showToast(`❌ Правильно: ${correct}`); }
+    if(input === correct) { 
+        showToast('✨ Правильно!'); 
+        setTimeout(renderTest, 1200); 
+    } else { 
+        showToast(`❌ Ожидалось: ${correct}`); 
+    }
 }
 
 async function renderAlphabet() {
+    const grid = document.getElementById('alphabet-grid');
+    grid.innerHTML = 'Загрузка...';
     const data = await syncData('Алфавит');
-    document.getElementById('alphabet-grid').innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква}</div><div style="font-size:10px; color:#888;">${b.Название} [${b.Звук}]</div></div>`).join('');
+    grid.innerHTML = data.map(b => `<div class="grid-item"><div class="grid-letter">${b.Буква || '—'}</div><div style="font-size:10px; color:#888;">${b.Название || ''} [${b.Звук || ''}]</div></div>`).join('');
 }
 
 function renderWords() {
     const cont = document.getElementById('words-content');
     const grouped = {};
-    wordsData.forEach(w => { const c = w.Категория || 'Общее'; if(!grouped[c]) grouped[c] = []; grouped[c].push(w); });
-    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `<div class="cat-title">${cat}</div>${ws.map(w => `<div class="dict-item"><b>${w.Армянский}</b> <span>${w.Русский}</span></div>`).join('')}`).join('');
+    wordsData.forEach(w => { 
+        const c = w.Категория || 'Общее'; 
+        if(!grouped[c]) grouped[c] = []; 
+        grouped[c].push(w); 
+    });
+    cont.innerHTML = Object.entries(grouped).map(([cat, ws]) => `
+        <div class="cat-title">${cat}</div>
+        ${ws.map(w => `<div class="dict-item"><b>${w.Армянский || w.Слово}</b> <span>${w.Русский || w.Перевод}</span></div>`).join('')}
+    `).join('');
 }
 
-function logout() { localStorage.removeItem('arm_session'); location.reload(); }
-function openSettings() { document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active')); document.getElementById('panel-settings').classList.add('active'); }
-function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-function renderCategories() { const cats = ['Урок 1', 'Семья']; document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); }
+function logout() { 
+    localStorage.removeItem('arm_session'); 
+    location.reload(); 
+}
+
+function openSettings() { 
+    document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active')); 
+    document.getElementById('panel-settings').classList.add('active'); 
+}
+
+function showToast(msg) { 
+    const t = document.getElementById('toast'); 
+    t.innerText = msg; 
+    t.style.display = 'block'; 
+    setTimeout(() => t.style.display = 'none', 3000); 
+}
+
+function renderCategories() { 
+    const cats = ['Урок 1', 'Семья']; 
+    document.getElementById('add-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join(''); 
+}
 
 document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => {
@@ -224,7 +285,8 @@ document.querySelectorAll('.tab').forEach(t => {
     });
 });
 
-if(currentUser) showApp();
+// ЗАПУСК ПРОВЕРКИ
+checkSession();
 </script>
 </body>
 </html>
