@@ -1,482 +1,696 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🇦🇲 Армянский Язык | Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🇦🇲 Армянский Язык</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCNLjDLmtW01ux7Rz87phpqVruNYKjl1mg",
-            authDomain: "armenianway.firebaseapp.com",
-            projectId: "armenianway",
-            storageBucket: "armenianway.firebasestorage.app",
-            messagingSenderId: "192632103042",
-            appId: "1:192632103042:web:e328a5acb20d521e4d149b"
-        };
+  <!--
+  ════════════════════════════════════════════════════
+  FIRESTORE SECURITY RULES (скопируй в Firebase Console)
+  ════════════════════════════════════════════════════
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db   = getFirestore(app);
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
 
-        window._wordDocs = [];
+      // Роли — читать может только сам пользователь
+      match /roles/{userId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // только через Firebase Console
+      }
 
-        /* AUTH */
-        window.handleLogin = async () => {
-            const email = document.getElementById('auth-email').value.trim();
-            const pass  = document.getElementById('auth-pass').value.trim();
-            if (!email || !pass) return showToast("Введите данные");
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true; btn.textContent = 'Входим...';
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch {
-                showToast("Ошибка входа: проверьте почту/пароль");
-                btn.disabled = false; btn.textContent = 'Начать изучение 🚀';
-            }
-        };
-        window.logout = () => signOut(auth).then(() => location.reload());
+      // Слова — читает/пишет владелец; админ читает всё
+      match /words/{docId} {
+        allow read:   if request.auth != null &&
+                        (resource.data.userId == request.auth.uid ||
+                         get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.isAdmin == true);
+        allow create: if request.auth != null &&
+                        request.resource.data.userId == request.auth.uid;
+        allow update, delete: if request.auth != null &&
+                        resource.data.userId == request.auth.uid;
+      }
 
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('main-app').style.display   = 'block';
-                document.getElementById('user-info').textContent = '👤 ' + user.email;
-                loadData();
-            } else {
-                document.getElementById('auth-overlay').style.display = 'flex';
-                document.getElementById('main-app').style.display     = 'none';
-            }
-        });
+      // Алфавит — читают все авторизованные
+      match /alphabet/{docId} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+  }
 
-        /* LOAD */
-        async function loadData() {
-            const q = query(collection(db, "words"), orderBy("createdAt", "asc"));
-            const snap = await getDocs(q);
-            window._wordDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-            window.wordsData = window._wordDocs.map(d => d.data);
-            renderTest();
-            if (document.getElementById('panel-words').classList.contains('active')) window.renderNotebook();
-        }
+  ════════════════════════════════════════════════════
+  -->
 
-        /* SAVE */
-        window.saveWord = async () => {
-            const lessonNum   = document.getElementById('add-lesson-num').value.trim();
-            const lessonTopic = document.getElementById('add-lesson-topic').value.trim();
-            const arm         = document.getElementById('add-arm').value.trim();
-            const trans       = document.getElementById('add-trans').value.trim();
-            const rus         = document.getElementById('add-rus').value.trim();
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --mid: #555;
+      --light: #888; --border: #e8e8e8; --bg: #f7f5f2; --card: #fff;
+      --radius: 28px; --radius-sm: 16px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 100px; }
 
-            if (!lessonNum) return showToast("Укажите номер урока");
-            if (!trans)     return showToast("Транскрипция обязательна");
-            if (!rus)       return showToast("Введите перевод");
+    /* ── INITIAL LOADER ── */
+    #app-loader {
+      position: fixed; inset: 0; background: var(--bg); z-index: 9000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    }
+    .loader-ring {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(232,52,28,.15);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { font-size: 13px; color: var(--light); letter-spacing: .5px; }
 
-            const btn = document.getElementById('save-btn');
-            btn.disabled = true; btn.textContent = 'Сохраняем...';
-            try {
-                await addDoc(collection(db, "words"), {
-                    lessonNum: parseInt(lessonNum) || 0,
-                    lessonTopic: lessonTopic || '',
-                    arm, trans, rus,
-                    createdAt: serverTimestamp()
-                });
-                showToast("✓ Записано в тетрадь!");
-                ['add-arm','add-trans','add-rus'].forEach(id => document.getElementById(id).value = '');
-                await loadData();
-            } catch { showToast("Ошибка сохранения"); }
-            btn.disabled = false; btn.textContent = 'Записать в тетрадь ✍️';
-        };
+    /* ── AUTH ── */
+    #auth-overlay {
+      position: fixed; inset: 0; background: var(--bg); z-index: 5000;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .auth-card {
+      background: #fff; padding: 44px 30px; border-radius: var(--radius);
+      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.1); text-align: center;
+    }
+    .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; }
+    .auth-sub { font-size: 15px; color: var(--light); margin-bottom: 30px; font-weight: 300; line-height: 1.5; display: block; }
+    .auth-error { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 18px; }
 
-        /* EDIT */
-        window.editWord = async (docId) => {
-            const entry = window._wordDocs.find(d => d.id === docId);
-            if (!entry) return;
-            const { arm, trans, rus } = entry.data;
-            const newArm   = prompt("✏️ Слово на армянском (необязательно):", arm || '');
-            if (newArm === null) return;
-            const newTrans = prompt("✏️ Транскрипция:", trans);
-            if (newTrans === null || !newTrans.trim()) return showToast("Транскрипция обязательна");
-            const newRus   = prompt("✏️ Перевод:", rus);
-            if (newRus === null || !newRus.trim()) return showToast("Перевод обязателен");
-            try {
-                await updateDoc(doc(db, "words", docId), { arm: newArm.trim(), trans: newTrans.trim(), rus: newRus.trim() });
-                showToast("✓ Запись обновлена");
-                await loadData();
-            } catch { showToast("Ошибка обновления"); }
-        };
+    /* ── MAIN ── */
+    #main-app { display: none; width: 100%; max-width: 520px; padding: 0 16px; animation: fadeIn .45s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* DELETE */
-        window.deleteWord = async (docId) => {
-            if (!confirm("Удалить эту запись?")) return;
-            try {
-                await deleteDoc(doc(db, "words", docId));
-                showToast("🗑 Запись удалена");
-                await loadData();
-            } catch { showToast("Ошибка удаления"); }
-        };
+    .hero { text-align: center; padding: 52px 0 32px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px,9vw,44px); line-height: 1; margin-bottom: 10px; letter-spacing: -1px; }
+    .hero h1 span { color: var(--red); }
+    .hero p { font-size: 14px; color: var(--light); font-weight: 300; }
+    .hero .user-badge {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+      font-size: 12px; color: var(--mid); background: #f2f2f2;
+      padding: 4px 12px; border-radius: 20px; font-weight: 500;
+    }
+    .admin-star { color: #f59e0b; font-size: 13px; }
 
-        /* NOTEBOOK — grouped Урок → Тема → слова */
-        window.renderNotebook = () => {
-            const docs  = window._wordDocs;
-            document.getElementById('notebook-count').textContent =
-                docs.length + ' ' + plural(docs.length, 'слово','слова','слов');
+    /* ── CARD ── */
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,.06); overflow: hidden; }
 
-            const cont = document.getElementById('words-content');
-            if (!docs.length) {
-                cont.innerHTML = '<div class="empty-state">Тетрадь пуста.<br>Добавьте первое слово!</div>';
-                return;
-            }
+    /* ── TABS ── */
+    .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 1; min-width: 72px; padding: 18px 5px; font-size: 10px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: .9px; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: .2s; user-select: none; }
+    .tab-icon { font-size: 19px; transition: transform .2s; }
+    .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
+    .tab.active .tab-icon { transform: scale(1.12); }
 
-            const lessons = {};
-            docs.forEach(({ id, data: w }) => {
-                const ln = w.lessonNum  ?? '—';
-                const lt = w.lessonTopic || '—';
-                if (!lessons[ln]) lessons[ln] = {};
-                if (!lessons[ln][lt]) lessons[ln][lt] = [];
-                lessons[ln][lt].push({ id, w });
-            });
+    /* ── PANELS ── */
+    .panel { display: none; padding: 28px 22px; }
+    .panel.active { display: block; }
 
-            cont.innerHTML = Object.keys(lessons).sort((a,b)=>a-b).map(ln => `
-                <div class="lesson-block">
-                    <div class="lesson-header">Урок ${ln}</div>
-                    ${Object.keys(lessons[ln]).map(lt => `
-                        <div class="topic-block">
-                            ${lt !== '—' ? `<div class="topic-title">${lt}</div>` : ''}
-                            ${lessons[ln][lt].map(({ id, w }) => {
-                                const display = w.arm || w.trans;
-                                return `
-                                <div class="dict-item">
-                                    <div class="dict-item-text">
-                                        <span class="dict-arm">${display}</span>
-                                        ${w.arm && w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
-                                        <span class="dict-rus">${w.rus}</span>
-                                    </div>
-                                    <div class="dict-actions">
-                                        <button class="action-btn edit-btn" onclick="editWord('${id}')">✏️</button>
-                                        <button class="action-btn del-btn"  onclick="deleteWord('${id}')">🗑</button>
-                                    </div>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
-        };
+    /* ── INPUTS ── */
+    .input-group { margin-bottom: 14px; }
+    .input-group label { display: block; font-size: 10px; font-weight: 800; color: var(--light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .8px; }
+    .input-group .hint { font-size: 11px; color: #c0c0c0; margin-top: 4px; font-style: italic; }
+    input[type=text], input[type=email], input[type=password], input[type=number], select {
+      width: 100%; padding: 12px 15px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--dark); outline: none;
+      transition: border-color .2s, box-shadow .2s; background: #fff; appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,52,28,.07); }
 
-        /* ALPHABET */
-        window.loadAlphabet = async () => {
-            const snap = await getDocs(collection(db, "alphabet"));
-            const grid = document.getElementById('alphabet-grid');
-            grid.innerHTML = snap.docs.map(d => {
-                const b = d.data();
-                return `<div class="grid-item"><div class="grid-letter">${b.letter}</div><div style="font-size:11px;color:#888">${b.name}</div></div>`;
-            }).join('') || '<div style="color:#aaa;padding:30px;text-align:center;grid-column:1/-1">Добавьте буквы в Firestore</div>';
-        };
+    /* ── BUTTONS ── */
+    .btn { width: 100%; padding: 15px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 14px; font-family: 'DM Sans', sans-serif; transition: .2s; }
+    .btn-primary { background: var(--red); color: #fff; box-shadow: 0 6px 18px rgba(232,52,28,.22); margin-top: 16px; }
+    .btn-primary:hover { background: #c92d14; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--mid); margin-top: 10px; }
+    .btn-outline:hover { background: #f5f5f5; }
 
-        /* PLURAL helper exposed for non-module script */
-        window.plural = (n, one, few, many) => {
-            const m10=n%10, m100=n%100;
-            if(m10===1&&m100!==11) return one;
-            if(m10>=2&&m10<=4&&(m100<10||m100>=20)) return few;
-            return many;
-        };
-    </script>
+    /* ── TEST ── */
+    .test-word { font-family: 'Playfair Display', serif; font-size: clamp(34px,10vw,50px); text-align: center; margin: 32px 0; letter-spacing: -1px; min-height: 68px; line-height: 1.2; }
+    .test-empty-title { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--dark); display: block; text-align: center; }
+    .test-empty-hint  { font-size: 13px; color: var(--light); display: block; text-align: center; margin-top: 8px; }
 
-    <style>
-        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        :root {
-            --red:#E8341C; --red-soft:#fff1ee; --dark:#1a1a1a; --mid:#555;
-            --light:#888; --border:#e8e8e8; --bg:#f7f5f2; --card:#ffffff;
-            --radius:32px; --radius-sm:18px;
-        }
-        body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding-bottom:100px; }
+    /* ── LESSON CONSTRUCTOR ── */
+    .section-label { font-size: 10px; font-weight: 800; color: var(--light); text-transform: uppercase; letter-spacing: .9px; margin-bottom: 8px; display: block; }
+    .constructor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .constructor-title { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.2px; }
 
-        /* AUTH */
-        #auth-overlay { position:fixed; inset:0; background:var(--bg); z-index:5000; display:flex; align-items:center; justify-content:center; padding:20px; }
-        .auth-card { background:#fff; padding:45px 30px; border-radius:var(--radius); width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.1); text-align:center; }
-        .auth-card h2 { font-family:'Playfair Display',serif; font-size:32px; margin-bottom:10px; }
-        .auth-card p  { font-size:15px; color:var(--light); margin-bottom:30px; font-weight:300; line-height:1.5; }
+    .lesson-num-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: #fafafa; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+    .lesson-num-row label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; white-space: nowrap; }
+    .lesson-num-row input[type=number] { max-width: 90px; border: 2px solid var(--border); padding: 10px 12px; }
 
-        /* MAIN */
-        #main-app { display:none; width:100%; max-width:500px; padding:0 16px; animation:fadeIn .5s ease-out; }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+    .topics-list { display: flex; flex-direction: column; gap: 12px; }
+    .topic-block {
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 16px 14px; background: #fcfcfc;
+      box-shadow: 0 2px 8px rgba(0,0,0,.03);
+    }
+    .topic-block-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .topic-block-header input { flex: 1; font-size: 13px; }
+    .topic-remove { background: none; border: none; cursor: pointer; font-size: 19px; color: #ccc; line-height: 1; transition: color .18s; flex-shrink: 0; padding: 2px; }
+    .topic-remove:hover { color: var(--red); }
 
-        /* HERO */
-        .hero { text-align:center; padding:60px 0 40px; }
-        .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(36px,9vw,48px); line-height:1; margin-bottom:12px; letter-spacing:-1px; }
-        .hero h1 span { color:var(--red); }
-        .hero p { font-size:15px; color:var(--light); font-weight:300; }
+    .words-list { display: flex; flex-direction: column; gap: 8px; }
+    .col-labels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 3px; }
+    .col-labels span { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .5px; }
+    .word-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .word-row input { font-size: 12px; padding: 9px 11px; }
+    @media (max-width: 400px) {
+      .word-row, .col-labels { grid-template-columns: 1fr; }
+      .col-labels { display: none; }
+    }
 
-        /* CARD */
-        .card { background:var(--card); border-radius:var(--radius); box-shadow:0 15px 45px rgba(0,0,0,.05); overflow:hidden; }
+    .add-row-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; padding: 9px; border-radius: 10px;
+      border: 1.5px dashed #ddd; background: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--light); font-family: 'DM Sans', sans-serif;
+      margin-top: 8px; transition: .18s;
+    }
+    .add-row-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
 
-        /* TABS */
-        .tabs { display:flex; background:#fafafa; border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
-        .tabs::-webkit-scrollbar { display:none; }
-        .tab { flex:1; min-width:80px; padding:22px 5px; font-size:10px; font-weight:800; text-align:center; cursor:pointer; color:var(--light); border-bottom:3px solid transparent; text-transform:uppercase; letter-spacing:1px; display:flex; flex-direction:column; align-items:center; gap:6px; transition:.25s; user-select:none; }
-        .tab-icon { font-size:22px; transition:transform .25s; }
-        .tab.active { color:var(--red); border-bottom-color:var(--red); background:#fff; }
-        .tab.active .tab-icon { transform:scale(1.1); }
+    .add-topic-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 13px; border-radius: var(--radius-sm);
+      border: 2px dashed var(--border); background: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--light); font-family: 'DM Sans', sans-serif;
+      margin-top: 8px; transition: .18s;
+    }
+    .add-topic-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
 
-        /* PANELS */
-        .panel { display:none; padding:35px 25px; }
-        .panel.active { display:block; }
+    /* ── NOTEBOOK ── */
+    .notebook-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .notebook-title  { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.1px; }
+    .notebook-count  { font-size: 12px; background: var(--red-soft); color: var(--red); padding: 3px 10px; border-radius: 20px; font-weight: 600; }
 
-        /* TEST */
-        .test-word { font-family:'Playfair Display',serif; font-size:clamp(38px,10vw,54px); text-align:center; margin:35px 0; letter-spacing:-1px; min-height:80px; line-height:1.2; }
-        .test-empty-state { font-family:'Playfair Display',serif; font-size:clamp(30px,8vw,42px); color:var(--dark); text-align:center; }
-        .test-empty-hint { font-family:'DM Sans',sans-serif; font-size:14px; color:var(--light); font-weight:400; display:block; margin-top:10px; }
+    .lesson-group { margin-bottom: 22px; }
+    .lesson-group-title { font-family: 'Playfair Display', serif; font-size: 19px; padding-bottom: 8px; border-bottom: 2px solid var(--border); margin-bottom: 10px; }
+    .topic-group { margin-bottom: 10px; }
+    .topic-group-title { font-size: 9px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: .7px; padding: 3px 8px; background: #f0f0f0; border-radius: 6px; display: inline-block; margin-bottom: 5px; }
 
-        /* INPUTS */
-        .input-group { margin-bottom:18px; }
-        .input-group label { display:block; font-size:10px; font-weight:800; color:var(--light); margin-bottom:7px; text-transform:uppercase; letter-spacing:.8px; }
-        .input-group .hint { font-size:11px; color:#bbb; margin-top:5px; font-style:italic; }
-        input[type=text],input[type=email],input[type=password],input[type=number],select {
-            width:100%; padding:15px 18px; border:2px solid var(--border); border-radius:var(--radius-sm);
-            font-size:15px; font-family:'DM Sans',sans-serif; color:var(--dark); outline:none;
-            transition:border-color .25s,box-shadow .25s; background:#fff; appearance:none; -moz-appearance:none;
-        }
-        input:focus,select:focus { border-color:var(--red); box-shadow:0 0 0 4px rgba(232,52,28,.07); }
+    .dict-item { padding: 10px 0; border-bottom: 1px solid #f3f3f3; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .dict-item:last-child { border-bottom: none; }
+    .dict-item-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .dict-arm   { font-family: 'Playfair Display', serif; font-size: 18px; line-height: 1.2; }
+    .dict-trans { font-size: 11px; color: var(--light); }
+    .dict-rus   { font-size: 13px; font-weight: 500; color: var(--mid); }
+    .dict-actions { display: flex; gap: 3px; flex-shrink: 0; }
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 5px; border-radius: 8px; transition: background .16s, transform .12s; line-height: 1; }
+    .edit-btn:hover { background: #fff8e1; transform: scale(1.15); }
+    .del-btn:hover  { background: #fef2f2; transform: scale(1.15); }
 
-        /* CONSTRUCTOR */
-        .constructor-header { font-size:11px; font-weight:800; color:var(--red); margin-bottom:20px; text-transform:uppercase; letter-spacing:1.2px; }
-        .section-divider { border:none; border-top:1px dashed var(--border); margin:22px 0; }
-        .section-label { font-size:11px; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
-        .word-card { background:#fafafa; border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; }
+    .inline-edit { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .inline-edit input { padding: 7px 10px; font-size: 13px; border-radius: 10px; }
+    .inline-save { background: none; border: none; cursor: pointer; font-size: 17px; color: var(--red); padding: 5px; border-radius: 8px; }
+    .inline-cancel { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--light); padding: 5px; border-radius: 8px; }
 
-        /* BUTTONS */
-        .btn { width:100%; padding:18px; border-radius:var(--radius-sm); border:none; font-weight:700; cursor:pointer; font-size:15px; font-family:'DM Sans',sans-serif; transition:.25s; }
-        .btn-primary { background:var(--red); color:#fff; box-shadow:0 8px 20px rgba(232,52,28,.2); margin-top:20px; }
-        .btn-primary:hover { background:#c92d14; transform:translateY(-1px); box-shadow:0 12px 28px rgba(232,52,28,.3); }
-        .btn-primary:active { transform:translateY(0); }
-        .btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; }
-        .btn-outline { background:transparent; border:2px solid var(--border); color:var(--mid); margin-top:12px; }
-        .btn-outline:hover { background:#f5f5f5; }
+    .empty-state { text-align: center; color: #bbb; padding: 44px 0; font-style: italic; line-height: 1.9; }
 
-        /* NOTEBOOK */
-        .notebook-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-        .notebook-title  { font-size:11px; font-weight:800; color:var(--red); text-transform:uppercase; letter-spacing:1.2px; }
-        .notebook-count  { font-size:12px; background:var(--red-soft); color:var(--red); padding:4px 10px; border-radius:20px; font-weight:600; }
+    /* ── ADMIN PANEL ── */
+    .admin-banner { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: #92400e; display: flex; align-items: center; gap: 8px; }
 
-        /* LESSON / TOPIC GROUPS */
-        .lesson-block { margin-bottom:26px; }
-        .lesson-header { font-family:'Playfair Display',serif; font-size:21px; color:var(--dark); padding-bottom:10px; border-bottom:2px solid var(--border); margin-bottom:12px; }
-        .topic-block { margin-bottom:12px; }
-        .topic-title { font-size:11px; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; padding:4px 10px; background:#f5f5f5; border-radius:8px; display:inline-block; }
+    /* ── ALPHABET ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
+    .grid-item { background: #fafafa; border: 1px solid var(--border); padding: 16px 8px; border-radius: var(--radius-sm); text-align: center; transition: border-color .18s; }
+    .grid-item:hover { border-color: var(--red); background: var(--red-soft); }
+    .grid-letter { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--red); }
 
-        .dict-item { padding:13px 0; border-bottom:1px solid #f3f3f3; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-        .dict-item:last-child { border-bottom:none; }
-        .dict-item-text { display:flex; flex-direction:column; gap:3px; flex:1; min-width:0; }
-        .dict-arm   { font-family:'Playfair Display',serif; font-size:21px; color:var(--dark); line-height:1.2; }
-        .dict-trans { font-size:12px; color:var(--light); }
-        .dict-rus   { font-size:14px; font-weight:500; color:var(--mid); }
-        .dict-actions { display:flex; gap:6px; flex-shrink:0; }
-        .action-btn { background:none; border:none; cursor:pointer; font-size:16px; padding:7px; border-radius:10px; transition:background .2s,transform .15s; line-height:1; }
-        .edit-btn:hover { background:#fff8e1; transform:scale(1.15); }
-        .del-btn:hover  { background:#fef2f2; transform:scale(1.15); }
+    /* ── SETTINGS ── */
+    .settings-email { font-size: 13px; color: var(--mid); background: #f9f9f9; padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; }
 
-        .empty-state { text-align:center; color:#bbb; padding:50px 0; font-style:italic; line-height:1.8; }
+    /* ── FLOATING ── */
+    .floating-settings { position: fixed; bottom: 28px; left: 28px; width: 48px; height: 48px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 6px 18px rgba(0,0,0,.1); cursor: pointer; transition: transform .4s; font-size: 18px; }
+    .floating-settings:hover { transform: rotate(180deg); }
 
-        /* ALPHABET */
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); gap:12px; }
-        .grid-item { background:#fafafa; border:1px solid var(--border); padding:20px 10px; border-radius:var(--radius-sm); text-align:center; transition:border-color .2s; }
-        .grid-item:hover { border-color:var(--red); background:var(--red-soft); }
-        .grid-letter { font-family:'Playfair Display',serif; font-size:30px; color:var(--red); }
-
-        /* SETTINGS */
-        .settings-email { font-size:13px; color:var(--light); background:#f9f9f9; padding:14px 18px; border-radius:14px; margin-bottom:20px; }
-
-        /* FLOATING */
-        .floating-settings { position:fixed; bottom:30px; left:30px; width:52px; height:52px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1000; box-shadow:0 8px 20px rgba(0,0,0,.1); cursor:pointer; transition:transform .4s; font-size:20px; }
-        .floating-settings:hover { transform:rotate(180deg); }
-
-        /* TOAST */
-        .toast { position:fixed; bottom:40px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark); color:#fff; padding:14px 28px; border-radius:50px; font-size:14px; z-index:10000; text-align:center; max-width:90vw; white-space:nowrap; transition:transform .3s cubic-bezier(.34,1.56,.64,1); pointer-events:none; font-weight:500; }
-        .toast.show { transform:translateX(-50%) translateY(0); }
-    </style>
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 34px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 12px 24px; border-radius: 50px; font-size: 13px; z-index: 10000; max-width: 90vw; white-space: nowrap; transition: transform .3s cubic-bezier(.34,1.56,.64,1); pointer-events: none; font-weight: 500; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth-overlay">
-    <div class="auth-card">
-        <h2>Барев, Джан! 🇦🇲</h2>
-        <p>Твой путь к языку начинается<br>с первой записи</p>
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="auth-email" placeholder="example@mail.com">
-        </div>
-        <div class="input-group">
-            <label>Пароль</label>
-            <input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') handleLogin()">
-        </div>
-        <button id="login-btn" class="btn btn-primary" style="margin-top:8px" onclick="handleLogin()">Начать изучение 🚀</button>
-    </div>
+<!-- ── INITIAL LOADER ── -->
+<div id="app-loader">
+  <div class="loader-ring"></div>
+  <span class="loader-text">Загружаем тетрадь…</span>
 </div>
 
-<!-- MAIN APP -->
+<!-- ── AUTH ── -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <h2>Барев, Джан! 🇦🇲</h2>
+    <span class="auth-sub">Твой путь к языку начинается<br>с первой записи</span>
+    <div class="input-group">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="example@mail.com">
+    </div>
+    <div class="input-group">
+      <label>Пароль</label>
+      <input type="password" id="auth-pass" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter') handleLogin()">
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <button id="login-btn" class="btn btn-primary" style="margin-top:4px" onclick="handleLogin()">
+      Начать изучение 🚀
+    </button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
 <div id="main-app">
-    <div class="hero">
-        <h1>Армянский <span>Язык</span></h1>
-        <p>Твоя персональная интерактивная тетрадь</p>
+  <div class="hero">
+    <h1>Армянский <span>Язык</span></h1>
+    <p>Твоя персональная интерактивная тетрадь</p>
+    <div class="user-badge" id="user-badge"></div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
+      <div class="tab" data-tab="add"><span class="tab-icon">✍️</span>Урок</div>
+      <div class="tab" data-tab="words"><span class="tab-icon">📓</span>Тетрадь</div>
+      <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
+      <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
     </div>
 
-    <div class="card">
-        <div class="tabs">
-            <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
-            <div class="tab" data-tab="add"><span class="tab-icon">✍️</span>Урок</div>
-            <div class="tab" data-tab="words"><span class="tab-icon">📓</span>Тетрадь</div>
-            <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
-            <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
-        </div>
-
-        <!-- TEST -->
-        <div class="panel active" id="panel-test">
-            <div id="test-word" class="test-word">...</div>
-            <input type="text" id="answer-input" placeholder="Введите перевод на русском..."
-                   autocomplete="off" onkeydown="if(event.key==='Enter') checkAnswer()">
-            <button class="btn btn-primary" onclick="checkAnswer()">Проверить ✓</button>
-            <button class="btn btn-outline" onclick="renderTest()">Следующее слово →</button>
-        </div>
-
-        <!-- LESSON CONSTRUCTOR -->
-        <div class="panel" id="panel-add">
-            <div class="constructor-header">✍️ Конструктор урока</div>
-
-            <div class="section-label">Информация об уроке</div>
-            <div class="input-group">
-                <label>Номер урока</label>
-                <input type="number" id="add-lesson-num" placeholder="Напр: 3" min="1">
-            </div>
-            <div class="input-group">
-                <label>Тема урока</label>
-                <input type="text" id="add-lesson-topic" placeholder="Напр: Дни недели">
-            </div>
-
-            <hr class="section-divider">
-            <div class="section-label">Слово для записи</div>
-
-            <div class="word-card">
-                <div class="input-group">
-                    <label>Слово (арм) — необязательно</label>
-                    <input type="text" id="add-arm" placeholder="Напр: Բարև">
-                    <div class="hint">Оставьте пустым, если изучаете только транскрипцию</div>
-                </div>
-                <div class="input-group">
-                    <label>Транскрипция (рус) *</label>
-                    <input type="text" id="add-trans" placeholder="Напр: Barev">
-                </div>
-                <div class="input-group" style="margin-bottom:0">
-                    <label>Перевод (рус) *</label>
-                    <input type="text" id="add-rus" placeholder="Напр: Привет">
-                </div>
-            </div>
-
-            <button class="btn btn-primary" id="save-btn" onclick="saveWord()">Записать в тетрадь ✍️</button>
-        </div>
-
-        <!-- NOTEBOOK -->
-        <div class="panel" id="panel-words">
-            <div class="notebook-header">
-                <span class="notebook-title">📓 Рабочая тетрадь</span>
-                <span class="notebook-count" id="notebook-count">0 слов</span>
-            </div>
-            <div id="words-content">
-                <div class="empty-state">Загрузка...</div>
-            </div>
-        </div>
-
-        <!-- ALPHABET -->
-        <div class="panel" id="panel-alphabet">
-            <div class="grid" id="alphabet-grid">
-                <div style="color:#aaa;padding:30px;text-align:center;grid-column:1/-1">Загрузка алфавита...</div>
-            </div>
-        </div>
-
-        <!-- LIBRARY -->
-        <div class="panel" id="panel-library">
-            <div class="empty-state">Раздел библиотеки в разработке</div>
-        </div>
-
-        <!-- SETTINGS -->
-        <div class="panel" id="panel-settings">
-            <div style="font-size:11px;font-weight:800;color:var(--red);margin-bottom:20px;text-transform:uppercase;letter-spacing:1.2px">Аккаунт</div>
-            <div class="settings-email" id="user-info">...</div>
-            <button class="btn btn-outline" style="color:var(--red);border-color:#fdd" onclick="logout()">Выйти из аккаунта</button>
-        </div>
+    <!-- TEST -->
+    <div class="panel active" id="panel-test">
+      <div id="test-word" class="test-word">…</div>
+      <input type="text" id="answer-input" placeholder="Введите перевод на русском…"
+             autocomplete="off" onkeydown="if(event.key==='Enter') checkAnswer()">
+      <button class="btn btn-primary" onclick="checkAnswer()">Проверить ✓</button>
+      <button class="btn btn-outline" onclick="nextWord()">Следующее слово →</button>
     </div>
+
+    <!-- LESSON CONSTRUCTOR -->
+    <div class="panel" id="panel-add">
+      <div class="constructor-header">
+        <span class="constructor-title">✍️ Конструктор урока</span>
+      </div>
+      <div class="lesson-num-row">
+        <label>Номер урока</label>
+        <input type="number" id="lesson-num" placeholder="Напр: 3" min="1">
+      </div>
+      <div class="topics-list" id="topics-list"></div>
+      <button class="add-topic-btn" onclick="addTopic()">＋ Добавить тему</button>
+      <button class="btn btn-primary" id="save-lesson-btn" onclick="saveLesson()">
+        Сохранить весь урок 💾
+      </button>
+    </div>
+
+    <!-- NOTEBOOK -->
+    <div class="panel" id="panel-words">
+      <div class="notebook-header">
+        <span class="notebook-title">📓 Рабочая тетрадь</span>
+        <span class="notebook-count" id="notebook-count">0 слов</span>
+      </div>
+      <div id="words-content"><div class="empty-state">Загрузка…</div></div>
+    </div>
+
+    <!-- ALPHABET -->
+    <div class="panel" id="panel-alphabet">
+      <div class="grid" id="alphabet-grid">
+        <div style="color:#aaa;padding:30px;text-align:center;grid-column:1/-1">Загрузка…</div>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="panel" id="panel-library">
+      <div class="empty-state">Раздел библиотеки в разработке</div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <div style="font-size:11px;font-weight:800;color:var(--red);margin-bottom:16px;text-transform:uppercase;letter-spacing:1.2px">Аккаунт</div>
+      <div class="settings-email" id="settings-email">…</div>
+      <button class="btn btn-outline" style="color:var(--red);border-color:#fdd" onclick="doLogout()">
+        Выйти из аккаунта
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="floating-settings" onclick="openSettings()" title="Настройки">⚙️</div>
 <div id="toast" class="toast"></div>
 
+<!-- Firebase compat (не ES module — функции доступны глобально) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <script>
-    window.wordsData   = [];
-    window._wordDocs   = [];
-    window.currentWord = null;
+/* ══════════════════════════════════════
+   FIREBASE INIT
+══════════════════════════════════════ */
+firebase.initializeApp({
+  apiKey:            "AIzaSyCNLjDLmtW01ux7Rz87phpqVruNYKjl1mg",
+  authDomain:        "armenianway.firebaseapp.com",
+  projectId:         "armenianway",
+  storageBucket:     "armenianway.firebasestorage.app",
+  messagingSenderId: "192632103042",
+  appId:             "1:192632103042:web:e328a5acb20d521e4d149b"
+});
 
-    function renderTest() {
-        const el = document.getElementById('test-word');
-        if (!window.wordsData.length) {
-            el.innerHTML = '<span class="test-empty-state">Тут пока чисто<span class="test-empty-hint">Добавьте слова во вкладке «Урок»</span></span>';
-            window.currentWord = null;
-            return;
-        }
-        window.currentWord = window.wordsData[Math.floor(Math.random() * window.wordsData.length)];
-        const question = window.currentWord.arm || window.currentWord.trans;
-        el.textContent = question;
-        document.getElementById('answer-input').value = '';
-        document.getElementById('answer-input').focus();
-    }
+// Firebase сохраняет сессию по умолчанию (LOCAL persistence)
+// Явно для надёжности:
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    function checkAnswer() {
-        if (!window.currentWord) return;
-        const val = document.getElementById('answer-input').value.trim().toLowerCase();
-        if (!val) return;
-        if (val === window.currentWord.rus.toLowerCase()) {
-            showToast("✨ Джан, правильно!");
-            setTimeout(renderTest, 1200);
-        } else {
-            showToast("❌ Правильно: " + window.currentWord.rus);
-        }
-    }
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-    function openSettings() {
-        document.querySelectorAll('.tab,.panel').forEach(el => el.classList.remove('active'));
-        document.getElementById('panel-settings').classList.add('active');
-    }
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let wordDocs   = [];   // [{id, data}]
+let currentWord = null;
+let isAdmin    = false;
+let topicCount = 0;
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg; t.classList.add('show');
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => t.classList.remove('show'), 2800);
-    }
+/* ══════════════════════════════════════
+   AUTH STATE — единственное место входа
+══════════════════════════════════════ */
+auth.onAuthStateChanged(async user => {
+  document.getElementById('app-loader').style.display = 'none';
+  if (user) {
+    // Проверка роли админа
+    try {
+      const roleSnap = await db.collection('roles').doc(user.uid).get();
+      isAdmin = roleSnap.exists && roleSnap.data().isAdmin === true;
+    } catch { isAdmin = false; }
 
-    function plural(n, one, few, many) {
-        const m10=n%10, m100=n%100;
-        if(m10===1&&m100!==11) return one;
-        if(m10>=2&&m10<=4&&(m100<10||m100>=20)) return few;
-        return many;
-    }
+    // Бейдж пользователя
+    const badge = document.getElementById('user-badge');
+    badge.innerHTML = isAdmin
+      ? `<span class="admin-star">⭐</span> ${user.email} · Admin`
+      : `👤 ${user.email}`;
+    document.getElementById('settings-email').textContent =
+      (isAdmin ? '⭐ Admin · ' : '') + user.email;
 
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const id = tab.dataset.tab;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById('panel-' + id).classList.add('active');
-            if (id === 'alphabet') window.loadAlphabet();
-            if (id === 'words')    window.renderNotebook();
-            if (id === 'test')     renderTest();
-        });
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('main-app').style.display     = 'block';
+    await loadData();
+    // Открываем конструктор с первой темой
+    if (!document.getElementById('topics-list').children.length) addTopic();
+  } else {
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('main-app').style.display     = 'none';
+  }
+});
+
+/* ══════════════════════════════════════
+   AUTH FUNCTIONS  (window.* для onclick)
+══════════════════════════════════════ */
+window.handleLogin = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value.trim();
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Введите email и пароль'; return; }
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Входим…';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    errEl.textContent = 'Ошибка: неверный email или пароль';
+    btn.disabled = false; btn.textContent = 'Начать изучение 🚀';
+  }
+};
+
+window.doLogout = function() {
+  auth.signOut().then(() => location.reload());
+};
+
+/* ══════════════════════════════════════
+   LOAD DATA  (фильтр по userId или всё для админа)
+══════════════════════════════════════ */
+async function loadData() {
+  const uid = auth.currentUser.uid;
+  let q = db.collection('words').orderBy('createdAt', 'asc');
+  if (!isAdmin) q = q.where('userId', '==', uid);
+  const snap = await q.get();
+  wordDocs    = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  renderTest();
+  if (document.getElementById('panel-words').classList.contains('active')) renderNotebook();
+}
+
+/* ══════════════════════════════════════
+   TEST
+══════════════════════════════════════ */
+function renderTest() {
+  const el = document.getElementById('test-word');
+  if (!wordDocs.length) {
+    el.innerHTML = '<span class="test-empty-title">Тут пока чисто</span><span class="test-empty-hint">Добавьте слова во вкладке «Урок»</span>';
+    currentWord = null; return;
+  }
+  const entry = wordDocs[Math.floor(Math.random() * wordDocs.length)];
+  currentWord = entry.data;
+  el.textContent = currentWord.arm || currentWord.trans;
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-input').focus();
+}
+
+window.nextWord    = function() { renderTest(); };
+window.checkAnswer = function() {
+  if (!currentWord) return;
+  const val = document.getElementById('answer-input').value.trim().toLowerCase();
+  if (!val) return;
+  if (val === currentWord.rus.toLowerCase()) {
+    showToast('✨ Джан, правильно!');
+    setTimeout(renderTest, 1200);
+  } else {
+    showToast('❌ Правильно: ' + currentWord.rus);
+  }
+};
+
+/* ══════════════════════════════════════
+   LESSON CONSTRUCTOR
+══════════════════════════════════════ */
+function wordRowHTML() {
+  return `<div class="word-row">
+    <input type="text" placeholder="Напр: Բարև">
+    <input type="text" placeholder="Напр: Barev">
+    <input type="text" placeholder="Напр: Привет">
+  </div>`;
+}
+
+window.addTopic = function() {
+  const list = document.getElementById('topics-list');
+  if (list.children.length >= 10) return showToast('Максимум 10 тем');
+  const div = document.createElement('div');
+  div.className = 'topic-block';
+  div.innerHTML = `
+    <div class="topic-block-header">
+      <input type="text" placeholder="Название темы (напр: Семья)">
+      <button class="topic-remove" onclick="this.closest('.topic-block').remove()">×</button>
+    </div>
+    <div class="col-labels">
+      <span>Армянский</span><span>Транскрипция *</span><span>Перевод *</span>
+    </div>
+    <div class="words-list">
+      ${wordRowHTML()}${wordRowHTML()}${wordRowHTML()}
+    </div>
+    <button class="add-row-btn" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend','${wordRowHTML().replace(/'/g,"\\'")}')">
+      ＋ ещё строка
+    </button>
+  `;
+  list.appendChild(div);
+};
+
+window.saveLesson = async function() {
+  const lessonNum = parseInt(document.getElementById('lesson-num').value) || 0;
+  if (!lessonNum) return showToast('Укажите номер урока');
+  const topics = document.querySelectorAll('#topics-list .topic-block');
+  if (!topics.length) return showToast('Добавьте хотя бы одну тему');
+
+  const uid = auth.currentUser.uid;
+  const toSave = [];
+  let hasError = false;
+
+  topics.forEach(block => {
+    const topicName = block.querySelector('input').value.trim() || '—';
+    block.querySelectorAll('.word-row').forEach(row => {
+      const [armI, transI, rusI] = row.querySelectorAll('input');
+      const arm   = armI.value.trim();
+      const trans = transI.value.trim();
+      const rus   = rusI.value.trim();
+      if (!arm && !trans && !rus) return;    // пустая строка — пропуск
+      if (!trans || !rus) { hasError = true; return; }
+      toSave.push({ lesson_number: lessonNum, topic_name: topicName, arm, trans, rus, userId: uid });
     });
+  });
+
+  if (hasError) return showToast('Заполните Транскрипцию и Перевод для всех слов');
+  if (!toSave.length) return showToast('Нет слов для сохранения');
+
+  const btn = document.getElementById('save-lesson-btn');
+  btn.disabled = true; btn.textContent = 'Сохраняем…';
+  const batch = db.batch();
+  const ts    = firebase.firestore.FieldValue.serverTimestamp();
+  toSave.forEach(w => batch.set(db.collection('words').doc(), { ...w, createdAt: ts }));
+  try {
+    await batch.commit();
+    showToast(`✓ Сохранено ${toSave.length} слов!`);
+    document.getElementById('topics-list').innerHTML = '';
+    document.getElementById('lesson-num').value = '';
+    topicCount = 0;
+    addTopic();
+    await loadData();
+  } catch(e) { showToast('Ошибка сохранения'); }
+  btn.disabled = false; btn.textContent = 'Сохранить весь урок 💾';
+};
+
+/* ══════════════════════════════════════
+   NOTEBOOK
+══════════════════════════════════════ */
+function renderNotebook() {
+  const n = wordDocs.length;
+  document.getElementById('notebook-count').textContent = n + ' ' + plural(n,'слово','слова','слов');
+  const cont = document.getElementById('words-content');
+  if (!n) { cont.innerHTML = '<div class="empty-state">Тетрадь пуста.<br>Добавьте первое слово!</div>'; return; }
+
+  // Admin banner
+  const adminBanner = isAdmin
+    ? `<div class="admin-banner">⭐ Режим администратора — отображаются записи всех пользователей</div>`
+    : '';
+
+  // Group: lesson_number → topic_name
+  const lessons = {};
+  wordDocs.forEach(({ id, data: w }) => {
+    const ln = w.lesson_number ?? '—';
+    const lt = w.topic_name    ?? '—';
+    if (!lessons[ln]) lessons[ln] = {};
+    if (!lessons[ln][lt]) lessons[ln][lt] = [];
+    lessons[ln][lt].push({ id, w });
+  });
+
+  const grouped = Object.keys(lessons).sort((a,b)=>a-b).map(ln => `
+    <div class="lesson-group">
+      <div class="lesson-group-title">Урок ${ln}</div>
+      ${Object.keys(lessons[ln]).map(lt => `
+        <div class="topic-group">
+          ${lt !== '—' ? `<div class="topic-group-title">${lt}</div>` : ''}
+          ${lessons[ln][lt].map(({id,w}) => {
+            const disp = w.arm || w.trans;
+            return `<div class="dict-item" id="di-${id}">
+              <div class="dict-item-text">
+                <span class="dict-arm">${disp}</span>
+                ${w.arm && w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
+                <span class="dict-rus">${w.rus}</span>
+              </div>
+              <div class="dict-actions">
+                <button class="action-btn edit-btn" onclick="startEdit('${id}')">✏️</button>
+                <button class="action-btn del-btn"  onclick="deleteWord('${id}')">×</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  cont.innerHTML = adminBanner + grouped;
+}
+
+window.startEdit = function(docId) {
+  const entry = wordDocs.find(d => d.id === docId);
+  if (!entry) return;
+  const {arm='', trans='', rus=''} = entry.data;
+  const row = document.getElementById('di-' + docId);
+  row.innerHTML = `
+    <div class="inline-edit">
+      <input type="text" id="ei-arm-${docId}"   value="${arm}"   placeholder="Армянский (необяз.)">
+      <input type="text" id="ei-trans-${docId}" value="${trans}" placeholder="Транскрипция *">
+      <input type="text" id="ei-rus-${docId}"   value="${rus}"   placeholder="Перевод *">
+    </div>
+    <div class="dict-actions">
+      <button class="inline-save"   onclick="saveEdit('${docId}')">✓</button>
+      <button class="inline-cancel" onclick="renderNotebook()">✕</button>
+    </div>
+  `;
+  ['arm','trans','rus'].forEach(f => {
+    document.getElementById(`ei-${f}-${docId}`)
+      .addEventListener('keydown', e => { if(e.key==='Enter') saveEdit(docId); });
+  });
+  document.getElementById(`ei-trans-${docId}`).focus();
+};
+
+window.saveEdit = async function(docId) {
+  const arm   = document.getElementById(`ei-arm-${docId}`).value.trim();
+  const trans = document.getElementById(`ei-trans-${docId}`).value.trim();
+  const rus   = document.getElementById(`ei-rus-${docId}`).value.trim();
+  if (!trans || !rus) return showToast('Транскрипция и перевод обязательны');
+  try {
+    await db.collection('words').doc(docId).update({ arm, trans, rus });
+    showToast('✓ Обновлено');
+    await loadData();
+  } catch { showToast('Ошибка обновления'); }
+};
+
+window.deleteWord = async function(docId) {
+  if (!confirm('Удалить эту запись?')) return;
+  try {
+    await db.collection('words').doc(docId).delete();
+    showToast('🗑 Удалено');
+    await loadData();
+  } catch { showToast('Ошибка удаления'); }
+};
+
+/* ══════════════════════════════════════
+   ALPHABET
+══════════════════════════════════════ */
+window.loadAlphabet = async function() {
+  const snap = await db.collection('alphabet').get();
+  const grid = document.getElementById('alphabet-grid');
+  grid.innerHTML = snap.docs.map(d => {
+    const b = d.data();
+    return `<div class="grid-item">
+      <div class="grid-letter">${b.letter}</div>
+      <div style="font-size:10px;color:#888;margin-top:2px">${b.name||''}</div>
+    </div>`;
+  }).join('') || '<div style="color:#aaa;padding:30px;text-align:center;grid-column:1/-1">Добавьте буквы в Firestore</div>';
+};
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+window.openSettings = function() {
+  document.querySelectorAll('.tab,.panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('panel-settings').classList.add('active');
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function plural(n, one, few, many) {
+  const m=n%10, c=n%100;
+  if(m===1&&c!==11) return one;
+  if(m>=2&&m<=4&&(c<10||c>=20)) return few;
+  return many;
+}
+
+/* ══════════════════════════════════════
+   TAB ROUTING
+══════════════════════════════════════ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const id = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + id).classList.add('active');
+    if (id === 'alphabet') loadAlphabet();
+    if (id === 'words')    renderNotebook();
+    if (id === 'test')     renderTest();
+  });
+});
 </script>
 </body>
 </html>
