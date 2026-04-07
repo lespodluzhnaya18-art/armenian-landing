@@ -9,8 +9,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+ 
         const firebaseConfig = {
             apiKey: "AIzaSyCNLjDLmtW01ux7Rz87phpqVruNYKjl1mg",
             authDomain: "armenianway.firebaseapp.com",
@@ -19,38 +19,49 @@
             messagingSenderId: "192632103042",
             appId: "1:192632103042:web:e328a5acb20d521e4d149b"
         };
-
+ 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
+ 
+        // Store doc IDs alongside data
+        window._wordDocs = []; // [{id, data}]
+ 
         window.handleLogin = async () => {
             const email = document.getElementById('auth-email').value.trim();
-            const pass = document.getElementById('auth-pass').value.trim();
-            if(!email || !pass) return showToast("Введите данные");
+            const pass  = document.getElementById('auth-pass').value.trim();
+            if (!email || !pass) return showToast("Введите данные");
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true; btn.textContent = 'Входим...';
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) { showToast("Ошибка входа: проверьте почту/пароль"); }
+            } catch (e) {
+                showToast("Ошибка входа: проверьте почту/пароль");
+                btn.disabled = false; btn.textContent = 'Начать изучение 🚀';
+            }
         };
-
+ 
         window.logout = () => signOut(auth).then(() => location.reload());
-
+ 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
+                document.getElementById('user-info').textContent = '👤 ' + user.email;
                 loadData();
             } else {
                 document.getElementById('auth-overlay').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
             }
         });
-
+ 
         window.saveWord = async () => {
-            const arm = document.getElementById('add-arm').value.trim();
+            const arm   = document.getElementById('add-arm').value.trim();
             const trans = document.getElementById('add-trans').value.trim();
-            const rus = document.getElementById('add-rus').value.trim();
-            if(!arm || !rus) return showToast("Заполните поля!");
+            const rus   = document.getElementById('add-rus').value.trim();
+            if (!arm || !rus) return showToast("Заполните обязательные поля!");
+            const btn = document.getElementById('save-btn');
+            btn.disabled = true; btn.textContent = 'Сохраняем...';
             try {
                 await addDoc(collection(db, "words"), {
                     arm, trans, rus,
@@ -58,172 +69,391 @@
                     createdAt: serverTimestamp()
                 });
                 showToast("✓ Добавлено в облако!");
-                document.querySelectorAll('.panel input').forEach(i => i.value = '');
-                loadData();
+                ['add-arm','add-trans','add-rus'].forEach(id => document.getElementById(id).value = '');
+                await loadData();
             } catch (e) { showToast("Ошибка сохранения"); }
+            btn.disabled = false; btn.textContent = 'Добавить в словарь';
         };
-
+ 
         async function loadData() {
             const q = query(collection(db, "words"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
-            window.wordsData = snap.docs.map(doc => doc.data());
+            window._wordDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+            window.wordsData = window._wordDocs.map(d => d.data);
             renderTest();
+            // Re-render notebook if it's currently visible
+            if (document.getElementById('panel-words').classList.contains('active')) {
+                renderNotebook();
+            }
         }
-
+ 
+        window.editWord = async (docId) => {
+            const entry = window._wordDocs.find(d => d.id === docId);
+            if (!entry) return;
+            const { arm, trans, rus } = entry.data;
+ 
+            const newArm   = prompt("✏️ Армянское слово:", arm);
+            if (newArm === null) return;
+            const newTrans = prompt("✏️ Транскрипция:", trans || '');
+            if (newTrans === null) return;
+            const newRus   = prompt("✏️ Перевод:", rus);
+            if (newRus === null) return;
+ 
+            if (!newArm.trim() || !newRus.trim()) return showToast("Слово и перевод не могут быть пустыми");
+ 
+            try {
+                await updateDoc(doc(db, "words", docId), {
+                    arm: newArm.trim(),
+                    trans: newTrans.trim(),
+                    rus: newRus.trim()
+                });
+                showToast("✓ Запись обновлена");
+                await loadData();
+            } catch (e) { showToast("Ошибка обновления"); }
+        };
+ 
+        window.deleteWord = async (docId) => {
+            if (!confirm("Удалить эту запись?")) return;
+            try {
+                await deleteDoc(doc(db, "words", docId));
+                showToast("🗑 Запись удалена");
+                await loadData();
+            } catch (e) { showToast("Ошибка удаления"); }
+        };
+ 
+        window.renderNotebook = () => {
+            const cont = document.getElementById('words-content');
+            if (!window._wordDocs.length) {
+                cont.innerHTML = '<div style="text-align:center;padding:50px 0;color:#aaa;font-style:italic;">Тетрадь пуста. Добавьте первое слово!</div>';
+                return;
+            }
+            cont.innerHTML = window._wordDocs.map(({ id, data: w }) => `
+                <div class="dict-item" data-id="${id}">
+                    <div class="dict-item-text">
+                        <b class="dict-arm">${w.arm}</b>
+                        ${w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
+                        <span class="dict-rus">${w.rus}</span>
+                    </div>
+                    <div class="dict-actions">
+                        <button class="action-btn edit-btn" onclick="editWord('${id}')" title="Редактировать">✏️</button>
+                        <button class="action-btn del-btn"  onclick="deleteWord('${id}')" title="Удалить">🗑</button>
+                    </div>
+                </div>
+            `).join('');
+        };
+ 
         window.loadAlphabet = async () => {
             const snap = await getDocs(collection(db, "alphabet"));
             const grid = document.getElementById('alphabet-grid');
             grid.innerHTML = snap.docs.map(doc => {
                 const b = doc.data();
-                return `<div class="grid-item"><div class="grid-letter">${b.letter}</div><div style="font-size:11px; color:#888;">${b.name}</div></div>`;
-            }).join('') || "Добавьте буквы в Firestore";
+                return `<div class="grid-item"><div class="grid-letter">${b.letter}</div><div style="font-size:11px;color:#888;">${b.name}</div></div>`;
+            }).join('') || '<div style="color:#aaa;padding:30px;text-align:center;">Добавьте буквы в Firestore</div>';
         };
     </script>
-
+ 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        :root { --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --border: #e8e8e8; --bg: #f7f5f2; --card: #ffffff; --radius: 32px; --radius-sm: 18px; }
+        :root {
+            --red: #E8341C; --red-soft: #fff1ee; --dark: #1a1a1a; --mid: #555;
+            --light: #888; --border: #e8e8e8; --bg: #f7f5f2; --card: #ffffff;
+            --radius: 32px; --radius-sm: 18px;
+        }
         body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 100px; }
-        
+ 
+        /* AUTH */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: #fff; padding: 45px 30px; border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; }
         .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; }
-
-        #main-app { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.5s ease-out; }
+        .auth-card p { font-size: 15px; color: var(--light); margin-bottom: 30px; font-weight: 300; line-height: 1.5; }
+ 
+        /* MAIN */
+        #main-app { display: none; width: 100%; max-width: 500px; padding: 0 16px; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
+ 
+        /* HERO */
         .hero { text-align: center; padding: 60px 0 40px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 48px; line-height: 1; margin-bottom: 12px; letter-spacing: -1px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 9vw, 48px); line-height: 1; margin-bottom: 12px; letter-spacing: -1px; }
         .hero h1 span { color: var(--red); }
-        .hero p { font-size: 16px; color: var(--light); font-weight: 300; }
-
-        .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
+        .hero p { font-size: 15px; color: var(--light); font-weight: 300; }
+ 
+        /* CARD */
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 15px 45px rgba(0,0,0,0.05); overflow: hidden; }
+ 
+        /* TABS */
         .tabs { display: flex; background: #fafafa; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-        .tab { flex: 1; min-width: 90px; padding: 25px 5px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 4px solid transparent; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: 0.3s; }
-        .tab-icon { font-size: 24px; transition: transform 0.3s; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { flex: 1; min-width: 80px; padding: 22px 5px; font-size: 10px; font-weight: 800; text-align: center; cursor: pointer; color: var(--light); border-bottom: 3px solid transparent; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: 0.25s; user-select: none; }
+        .tab-icon { font-size: 22px; transition: transform 0.25s; }
         .tab.active { color: var(--red); border-bottom-color: var(--red); background: #fff; }
         .tab.active .tab-icon { transform: scale(1.1); }
-
-        .panel { display: none; padding: 40px 25px; }
+ 
+        /* PANELS */
+        .panel { display: none; padding: 35px 25px; }
         .panel.active { display: block; }
-        
-        .test-word { font-family: 'Playfair Display', serif; font-size: 56px; text-align: center; margin: 45px 0; letter-spacing: -1px; }
-        .input-group { margin-bottom: 25px; text-align: left; }
-        .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--light); margin-bottom: 8px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 18px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--red); }
-
-        .btn { width: 100%; padding: 20px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(232, 52, 28, 0.2); }
+ 
+        /* TEST */
+        .test-word { font-family: 'Playfair Display', serif; font-size: clamp(40px, 12vw, 56px); text-align: center; margin: 40px 0; letter-spacing: -1px; min-height: 80px; }
+ 
+        /* FORM */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 10px; font-weight: 800; color: var(--light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+        input[type="text"], input[type="email"], input[type="password"], select {
+            width: 100%; padding: 16px 18px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+            font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--dark); outline: none; transition: border-color 0.25s, box-shadow 0.25s; background: #fff; appearance: none;
+        }
+        input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 4px rgba(232,52,28,0.07); }
+ 
+        /* BUTTONS */
+        .btn { width: 100%; padding: 18px; border-radius: var(--radius-sm); border: none; font-weight: 700; cursor: pointer; font-size: 15px; font-family: 'DM Sans', sans-serif; transition: 0.25s; letter-spacing: 0.2px; }
+        .btn-primary { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(232,52,28,0.2); }
+        .btn-primary:hover { background: #c92d14; transform: translateY(-1px); box-shadow: 0 12px 28px rgba(232,52,28,0.3); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--mid); margin-top: 15px; }
-
-        .floating-settings { position: fixed; bottom: 30px; left: 30px; width: 55px; height: 55px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; transition: 0.5s; }
+        .btn-outline:hover { background: #f5f5f5; }
+ 
+        /* NOTEBOOK */
+        .notebook-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .notebook-title { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.2px; }
+        .notebook-count { font-size: 12px; color: var(--light); background: var(--red-soft); color: var(--red); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+ 
+        .dict-item { padding: 16px 0; border-bottom: 1px solid #f3f3f3; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: background 0.15s; }
+        .dict-item:last-child { border-bottom: none; }
+        .dict-item-text { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+        .dict-arm { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--dark); line-height: 1.2; }
+        .dict-trans { font-size: 12px; color: var(--light); }
+        .dict-rus { font-size: 14px; font-weight: 500; color: var(--mid); }
+ 
+        .dict-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 7px; border-radius: 10px; transition: background 0.2s, transform 0.15s; line-height: 1; }
+        .edit-btn:hover { background: #fff8e1; transform: scale(1.15); }
+        .del-btn:hover  { background: #fef2f2; transform: scale(1.15); }
+ 
+        /* ALPHABET GRID */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 12px; }
+        .grid-item { background: #fafafa; border: 1px solid var(--border); padding: 20px 10px; border-radius: var(--radius-sm); text-align: center; transition: border-color 0.2s; }
+        .grid-item:hover { border-color: var(--red); background: var(--red-soft); }
+        .grid-letter { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--red); }
+ 
+        /* SETTINGS */
+        .settings-email { font-size: 13px; color: var(--light); background: #f9f9f9; padding: 14px 18px; border-radius: 14px; margin-bottom: 20px; }
+ 
+        /* FLOATING */
+        .floating-settings { position: fixed; bottom: 30px; left: 30px; width: 52px; height: 52px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.4s; font-size: 20px; }
         .floating-settings:hover { transform: rotate(180deg); }
-
-        .dict-item { padding: 18px 0; border-bottom: 1px solid #f8f8f8; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
-        .grid-item { background: #fff; border: 1px solid var(--border); padding: 25px 10px; border-radius: var(--radius-sm); text-align: center; }
-        .grid-letter { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--red); }
-        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 18px 40px; border-radius: 50px; font-size: 14px; display: none; z-index: 10000; text-align: center; width: 90%; max-width: 420px; }
+ 
+        /* TOAST */
+        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 14px 28px; border-radius: 50px; font-size: 14px; z-index: 10000; text-align: center; max-width: 90vw; white-space: nowrap; transition: transform 0.3s cubic-bezier(.34,1.56,.64,1); pointer-events: none; font-weight: 500; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
-
+ 
+<!-- AUTH OVERLAY -->
 <div id="auth-overlay">
     <div class="auth-card">
         <h2>Барев, Джан! 🇦🇲</h2>
-        <p style="font-size:15px; color:#888; margin-bottom:30px; font-weight:300;">Введите свои данные</p>
-        <div class="input-group"><label>Email</label><input type="email" id="auth-email" placeholder="example@mail.com"></div>
-        <div class="input-group"><label>Пароль</label><input type="password" id="auth-pass" placeholder="••••"></div>
-        <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Войти в систему</button>
+        <p>Твой путь к языку начинается<br>с первой записи</p>
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="auth-email" placeholder="example@mail.com">
+        </div>
+        <div class="input-group">
+            <label>Пароль</label>
+            <input type="password" id="auth-pass" placeholder="••••••••"
+                   onkeydown="if(event.key==='Enter') handleLogin()">
+        </div>
+        <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Начать изучение 🚀</button>
     </div>
 </div>
-
+ 
+<!-- MAIN APP -->
 <div id="main-app">
     <div class="hero">
         <h1>Армянский <span>Язык</span></h1>
-        <p>Интерактивная платформа на Firebase</p>
+        <p>Твоя персональная интерактивная тетрадь</p>
     </div>
-
+ 
     <div class="card">
+        <!-- TABS -->
         <div class="tabs">
-            <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
-            <div class="tab" data-tab="add"><span class="tab-icon">➕</span>Слова</div>
-            <div class="tab" data-tab="words"><span class="tab-icon">📚</span>Словарь</div>
-            <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
-            <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
+            <div class="tab active" data-tab="test">
+                <span class="tab-icon">🎯</span>Тесты
+            </div>
+            <div class="tab" data-tab="add">
+                <span class="tab-icon">➕</span>Слова
+            </div>
+            <div class="tab" data-tab="words">
+                <span class="tab-icon">📓</span>Тетрадь
+            </div>
+            <div class="tab" data-tab="alphabet">
+                <span class="tab-icon">📖</span>Алфавит
+            </div>
+            <div class="tab" data-tab="library">
+                <span class="tab-icon">🏛️</span>Библиотека
+            </div>
         </div>
-
+ 
+        <!-- TEST -->
         <div class="panel active" id="panel-test">
             <div id="test-word" class="test-word">...</div>
-            <input type="text" id="answer-input" placeholder="Введите перевод..." autocomplete="off">
-            <button class="btn btn-primary" style="margin-top:25px" onclick="checkAnswer()">Проверить ✓</button>
+            <input type="text" id="answer-input" placeholder="Введите перевод на русском..."
+                   autocomplete="off" onkeydown="if(event.key==='Enter') checkAnswer()">
+            <button class="btn btn-primary" style="margin-top: 22px;" onclick="checkAnswer()">Проверить ✓</button>
+            <button class="btn btn-outline" onclick="renderTest()">Следующее слово →</button>
         </div>
-
+ 
+        <!-- ADD WORD -->
         <div class="panel" id="panel-add">
-            <div style="font-size:12px; font-weight:800; color:var(--red); margin-bottom:20px; text-transform:uppercase;">Новое слово в облако</div>
-            <div class="input-group"><label>Армянское слово</label><input type="text" id="add-arm" placeholder="Напр: Բարև"></div>
-            <div class="input-group"><label>Транскрипция</label><input type="text" id="add-trans" placeholder="Напр: Barev"></div>
-            <div class="input-group"><label>Перевод</label><input type="text" id="add-rus" placeholder="Напр: Привет"></div>
-            <div class="input-group"><label>Категория</label><select id="add-cat"><option>Урок 1</option><option>Семья</option><option>Разговорное</option></select></div>
+            <div style="font-size:11px; font-weight:800; color:var(--red); margin-bottom:24px; text-transform:uppercase; letter-spacing:1.2px;">Новое слово в облако</div>
+            <div class="input-group">
+                <label>Армянское слово *</label>
+                <input type="text" id="add-arm" placeholder="Напр: Բարև">
+            </div>
+            <div class="input-group">
+                <label>Транскрипция</label>
+                <input type="text" id="add-trans" placeholder="Напр: Barev">
+            </div>
+            <div class="input-group">
+                <label>Перевод (русский) *</label>
+                <input type="text" id="add-rus" placeholder="Напр: Привет">
+            </div>
+            <div class="input-group">
+                <label>Категория</label>
+                <select id="add-cat">
+                    <option>Урок 1</option>
+                    <option>Семья</option>
+                    <option>Разговорное</option>
+                    <option>Местоимения</option>
+                </select>
+            </div>
             <button class="btn btn-primary" id="save-btn" onclick="saveWord()">Добавить в словарь</button>
         </div>
-
-        <div class="panel" id="panel-words"><div id="words-content">Загрузка...</div></div>
-        <div class="panel" id="panel-alphabet"><div class="grid" id="alphabet-grid"></div></div>
-        <div class="panel" id="panel-library"><div style="text-align:center; color:#888; padding:40px 0;">Раздел библиотеки в разработке</div></div>
-
+ 
+        <!-- NOTEBOOK (formerly Словарь) -->
+        <div class="panel" id="panel-words">
+            <div class="notebook-header">
+                <span class="notebook-title">📓 Рабочая тетрадь</span>
+                <span class="notebook-count" id="notebook-count">0 слов</span>
+            </div>
+            <div id="words-content">
+                <div style="text-align:center; color:#bbb; padding:40px 0; font-style:italic;">Загрузка...</div>
+            </div>
+        </div>
+ 
+        <!-- ALPHABET -->
+        <div class="panel" id="panel-alphabet">
+            <div class="grid" id="alphabet-grid">
+                <div style="color:#aaa; padding:30px; text-align:center; grid-column:1/-1;">Загрузка алфавита...</div>
+            </div>
+        </div>
+ 
+        <!-- LIBRARY -->
+        <div class="panel" id="panel-library">
+            <div style="text-align:center; color:#aaa; padding:50px 0; font-style:italic;">Раздел библиотеки в разработке</div>
+        </div>
+ 
+        <!-- SETTINGS (hidden, accessible via gear) -->
         <div class="panel" id="panel-settings">
-            <div id="user-info" style="font-size:14px; color:#888; margin-bottom:25px; background: #f9f9f9; padding: 15px; border-radius: 15px;"></div>
-            <button class="btn btn-outline" style="color:var(--red); border-color: #fee" onclick="logout()">Выйти из аккаунта</button>
+            <div style="font-size:11px; font-weight:800; color:var(--red); margin-bottom:20px; text-transform:uppercase; letter-spacing:1.2px;">Аккаунт</div>
+            <div class="settings-email" id="user-info">...</div>
+            <button class="btn btn-outline" style="color:var(--red); border-color:#fdd;" onclick="logout()">Выйти из аккаунта</button>
         </div>
     </div>
 </div>
-
-<div class="floating-settings" onclick="openSettings()">⚙️</div>
+ 
+<div class="floating-settings" onclick="openSettings()" title="Настройки">⚙️</div>
 <div id="toast" class="toast"></div>
-
+ 
 <script>
     window.wordsData = [];
+    window._wordDocs = [];
     window.currentWord = null;
-
+ 
     function renderTest() {
-        if(!window.wordsData.length) return document.getElementById('test-word').innerText = "Пусто";
+        if (!window.wordsData.length) {
+            document.getElementById('test-word').innerText = 'Добавьте слова 📝';
+            return;
+        }
         window.currentWord = window.wordsData[Math.floor(Math.random() * window.wordsData.length)];
         document.getElementById('test-word').innerText = window.currentWord.arm;
         document.getElementById('answer-input').value = '';
+        document.getElementById('answer-input').focus();
     }
-
+ 
     function checkAnswer() {
+        if (!window.currentWord) return;
         const val = document.getElementById('answer-input').value.trim().toLowerCase();
-        if(val === window.currentWord.rus.toLowerCase()) {
-            showToast("✨ Джан, правильно!"); setTimeout(renderTest, 1000);
-        } else { showToast("❌ Ошибка: " + window.currentWord.rus); }
+        if (!val) return;
+        if (val === window.currentWord.rus.toLowerCase()) {
+            showToast("✨ Джан, правильно!");
+            setTimeout(renderTest, 1200);
+        } else {
+            showToast("❌ Правильно: " + window.currentWord.rus);
+        }
     }
-
+ 
+    function renderNotebook() {
+        const docs = window._wordDocs;
+        const count = document.getElementById('notebook-count');
+        count.textContent = docs.length + ' ' + plural(docs.length, 'слово', 'слова', 'слов');
+ 
+        const cont = document.getElementById('words-content');
+        if (!docs.length) {
+            cont.innerHTML = '<div style="text-align:center;padding:50px 0;color:#bbb;font-style:italic;">Тетрадь пуста.<br>Добавьте первое слово!</div>';
+            return;
+        }
+        cont.innerHTML = docs.map(({ id, data: w }) => `
+            <div class="dict-item">
+                <div class="dict-item-text">
+                    <span class="dict-arm">${w.arm}</span>
+                    ${w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
+                    <span class="dict-rus">${w.rus}</span>
+                </div>
+                <div class="dict-actions">
+                    <button class="action-btn edit-btn" onclick="editWord('${id}')" title="Редактировать">✏️</button>
+                    <button class="action-btn del-btn"  onclick="deleteWord('${id}')" title="Удалить">🗑</button>
+                </div>
+            </div>
+        `).join('');
+    }
+ 
+    function plural(n, one, few, many) {
+        const mod10 = n % 10, mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return one;
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+        return many;
+    }
+ 
     function openSettings() {
-        document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
         document.getElementById('panel-settings').classList.add('active');
     }
-
+ 
     function showToast(msg) {
         const t = document.getElementById('toast');
-        t.innerText = msg; t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 3000);
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2800);
     }
-
-    document.querySelectorAll('.tab').forEach(t => {
-        t.addEventListener('click', () => {
-            const tab = t.dataset.tab;
-            document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
-            t.classList.add('active'); document.getElementById('panel-' + tab).classList.add('active');
-            if(tab === 'alphabet') window.loadAlphabet();
-            if(tab === 'words') {
-                const cont = document.getElementById('words-content');
-                cont.innerHTML = window.wordsData.map(w => `<div class="dict-item"><div><b style="font-family:'Playfair Display'; font-size:20px;">${w.arm}</b><br><small style="color:#888">${w.trans || ''}</small></div> <span style="font-weight:500;">${w.rus}</span></div>`).join('');
-            }
+ 
+    // TAB ROUTING
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const id = tab.dataset.tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel-' + id).classList.add('active');
+            if (id === 'alphabet') window.loadAlphabet();
+            if (id === 'words')    renderNotebook();
+            if (id === 'test')     renderTest();
         });
     });
 </script>
 </body>
 </html>
+ 
