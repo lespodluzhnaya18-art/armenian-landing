@@ -140,9 +140,9 @@
     .constructor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
     .constructor-title { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.2px; }
 
-    .lesson-num-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: #fafafa; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+    .lesson-num-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: #fafafa; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; }
     .lesson-num-row label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; white-space: nowrap; }
-    .lesson-num-row input[type=number] { max-width: 90px; border: 2px solid var(--border); padding: 10px 12px; }
+    .lesson-num-row input[type=text] { max-width: 200px; border: 2px solid var(--border); padding: 9px 12px; border-radius: var(--radius-sm); }
 
     .topics-list { display: flex; flex-direction: column; gap: 12px; }
     .topic-block {
@@ -153,24 +153,36 @@
     }
     .topic-block-top {
       display: flex; align-items: center; gap: 8px;
-      background: #f2f2f0; border-bottom: 1px solid #e8e8e8;
-      padding: 11px 14px;
+      background: #efefed; border-bottom: 1px solid #e0e0de;
+      padding: 10px 14px;
     }
-    .topic-block-top input { flex: 1; font-size: 13px; font-weight: 600; background: transparent; border: none; padding: 0; border-radius: 0; box-shadow: none; }
-    .topic-block-top input:focus { border: none; box-shadow: none; outline: none; }
+    /* Make topic name look like an editable field */
+    .topic-block-top input {
+      flex: 1; font-size: 13px; font-weight: 600;
+      background: #fff; border: 1.5px solid #d8d8d8;
+      padding: 7px 11px; border-radius: 10px; color: var(--dark);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .topic-block-top input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,52,28,.07); outline: none; }
+    .topic-block-top input::placeholder { color: #aaa; font-weight: 400; }
     .topic-block-body { padding: 14px 14px 12px; }
-    .topic-remove { background: none; border: none; cursor: pointer; font-size: 17px; color: #ccc; line-height: 1; transition: color .18s; flex-shrink: 0; padding: 1px; }
+    .topic-remove { background: none; border: none; cursor: pointer; font-size: 17px; color: #bbb; line-height: 1; transition: color .18s; flex-shrink: 0; padding: 1px; }
     .topic-remove:hover { color: var(--red); }
 
     .words-list { display: flex; flex-direction: column; gap: 6px; }
-    .col-labels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 2px; }
-    .col-labels span { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .5px; }
-    .word-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .col-labels { display: grid; grid-template-columns: 1fr 1fr 1fr 20px; gap: 7px; margin-bottom: 2px; }
+    .col-labels span { font-size: 10px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: .5px; }
+    .word-row { display: grid; grid-template-columns: 1fr 1fr 1fr 20px; gap: 7px; align-items: center; }
     .word-row input { font-size: 12px; padding: 9px 11px; }
+    .word-row-del { background: none; border: none; cursor: pointer; font-size: 16px; color: #ccc; padding: 0; line-height: 1; transition: color .15s; }
+    .word-row-del:hover { color: var(--red); }
     @media (max-width: 400px) {
-      .word-row, .col-labels { grid-template-columns: 1fr; }
+      .word-row { grid-template-columns: 1fr; }
       .col-labels { display: none; }
     }
+
+    /* Words section label — bigger, more visible */
+    .words-section-label { font-size: 11px; font-weight: 800; color: var(--dark); text-transform: uppercase; letter-spacing: .8px; display: block; margin-bottom: 8px; }
 
     /* Topic comment textarea */
     .topic-comment {
@@ -490,17 +502,24 @@ window.checkAnswer = function() {
 function makeWordRow() {
   const div = document.createElement('div');
   div.className = 'word-row';
-  div.innerHTML = `
-    <input type="text" placeholder="Напр: Բարև">
-    <input type="text" placeholder="Напр: Barev">
-    <input type="text" placeholder="Напр: Привет">
-  `;
+  const placeholders = ['Напр: Բารев', 'Напр: Barev', 'Напр: Привет'];
+  placeholders.forEach(ph => {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = ph;
+    div.appendChild(inp);
+  });
+  const del = document.createElement('button');
+  del.className = 'word-row-del';
+  del.title = 'Удалить слово';
+  del.textContent = '×';
+  del.onclick = function() {
+    const list = div.parentElement;
+    if (list && list.children.length > 1) div.remove();
+    else div.querySelectorAll('input').forEach(i => i.value = '');
+  };
+  div.appendChild(del);
   return div;
 }
-
-window.addWordRow = function(btn) {
-  btn.previousElementSibling.appendChild(makeWordRow());
-};
 
 window.addTopic = function() {
   const list = document.getElementById('topics-list');
@@ -529,13 +548,11 @@ window.addTopic = function() {
   // Column labels
   const labels = document.createElement('div');
   labels.className = 'col-labels';
-  labels.innerHTML = '<span>на Армянском</span><span>Транскрипция *</span><span>Перевод *</span>';
+  labels.innerHTML = '<span>на Армянском</span><span>Транскрипция *</span><span>Перевод *</span><span></span>';
 
   // Words section label
   const wordsLabel = document.createElement('span');
-  wordsLabel.className = 'topic-comment-label';
-  wordsLabel.style.marginTop = '0';
-  wordsLabel.style.marginBottom = '6px';
+  wordsLabel.className = 'words-section-label';
   wordsLabel.textContent = 'Слова';
 
   // Words list
@@ -546,7 +563,7 @@ window.addTopic = function() {
   // Add row button
   const addRowBtn = document.createElement('button');
   addRowBtn.className = 'add-row-btn';
-  addRowBtn.textContent = '+ ещё строка';
+  addRowBtn.textContent = '+ ещё слово';
   addRowBtn.onclick = function() { wordsList.appendChild(makeWordRow()); };
 
   // Comment label + textarea
