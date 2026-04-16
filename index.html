@@ -308,15 +308,12 @@
 
     <!-- LESSON CONSTRUCTOR -->
     <div class="panel" id="panel-add">
-      <div class="constructor-header">
-        <span class="constructor-title">✍️ Конструктор урока</span>
-      </div>
       <div class="lesson-num-row">
         <label>Урок</label>
         <input type="text" id="lesson-num" placeholder="">
       </div>
       <div class="topics-list" id="topics-list"></div>
-      <button class="add-topic-btn" onclick="addTopic()">＋ Добавить тему</button>
+      <button class="add-topic-btn" onclick="addTopic()">+ Добавить тему</button>
       <button class="btn btn-primary" id="save-lesson-btn" onclick="saveLesson()">
         Сохранить урок
       </button>
@@ -489,38 +486,86 @@ window.checkAnswer = function() {
 /* ══════════════════════════════════════
    LESSON CONSTRUCTOR
 ══════════════════════════════════════ */
-function wordRowHTML() {
-  return `<div class="word-row">
+
+function makeWordRow() {
+  const div = document.createElement('div');
+  div.className = 'word-row';
+  div.innerHTML = `
     <input type="text" placeholder="Напр: Բարև">
     <input type="text" placeholder="Напр: Barev">
     <input type="text" placeholder="Напр: Привет">
-  </div>`;
+  `;
+  return div;
 }
+
+window.addWordRow = function(btn) {
+  btn.previousElementSibling.appendChild(makeWordRow());
+};
 
 window.addTopic = function() {
   const list = document.getElementById('topics-list');
   if (list.children.length >= 10) return showToast('Максимум 10 тем');
+
   const div = document.createElement('div');
   div.className = 'topic-block';
-  div.innerHTML = `
-    <div class="topic-block-top">
-      <input type="text" placeholder="Название темы">
-      <button class="topic-remove" onclick="this.closest('.topic-block').remove()">×</button>
-    </div>
-    <div class="topic-block-body">
-      <div class="col-labels">
-        <span>на Армянском</span><span>Транскрипция *</span><span>Перевод *</span>
-      </div>
-      <div class="words-list">
-        ${wordRowHTML()}
-      </div>
-      <button class="add-row-btn" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend',${JSON.stringify(wordRowHTML())})">
-        + ещё строка
-      </button>
-      <span class="topic-comment-label">Комментарий / правило</span>
-      <textarea class="topic-comment" placeholder="Заметки, правила или пояснения к теме…"></textarea>
-    </div>
-  `;
+
+  // Header
+  const top = document.createElement('div');
+  top.className = 'topic-block-top';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.placeholder = 'Название темы';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'topic-remove';
+  removeBtn.textContent = '×';
+  removeBtn.onclick = () => div.remove();
+  top.appendChild(nameInput);
+  top.appendChild(removeBtn);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'topic-block-body';
+
+  // Column labels
+  const labels = document.createElement('div');
+  labels.className = 'col-labels';
+  labels.innerHTML = '<span>на Армянском</span><span>Транскрипция *</span><span>Перевод *</span>';
+
+  // Words section label
+  const wordsLabel = document.createElement('span');
+  wordsLabel.className = 'topic-comment-label';
+  wordsLabel.style.marginTop = '0';
+  wordsLabel.style.marginBottom = '6px';
+  wordsLabel.textContent = 'Слова';
+
+  // Words list
+  const wordsList = document.createElement('div');
+  wordsList.className = 'words-list';
+  wordsList.appendChild(makeWordRow());
+
+  // Add row button
+  const addRowBtn = document.createElement('button');
+  addRowBtn.className = 'add-row-btn';
+  addRowBtn.textContent = '+ ещё строка';
+  addRowBtn.onclick = function() { wordsList.appendChild(makeWordRow()); };
+
+  // Comment label + textarea
+  const commentLabel = document.createElement('span');
+  commentLabel.className = 'topic-comment-label';
+  commentLabel.textContent = 'Комментарий / правило';
+  const commentArea = document.createElement('textarea');
+  commentArea.className = 'topic-comment';
+  commentArea.placeholder = 'Заметки, правила или пояснения к теме…';
+
+  body.appendChild(wordsLabel);
+  body.appendChild(labels);
+  body.appendChild(wordsList);
+  body.appendChild(addRowBtn);
+  body.appendChild(commentLabel);
+  body.appendChild(commentArea);
+
+  div.appendChild(top);
+  div.appendChild(body);
   list.appendChild(div);
 };
 
