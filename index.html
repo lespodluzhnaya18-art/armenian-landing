@@ -140,7 +140,7 @@
     .constructor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
     .constructor-title { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.2px; }
 
-    /* Lesson number row — same card style as topic-block */
+    /* Lesson row — identical to topic-block */
     .lesson-num-row {
       border: 1.5px solid #e2e2e2; border-radius: var(--radius-sm);
       background: #f9f9f8; box-shadow: 0 1px 4px rgba(0,0,0,.04);
@@ -148,10 +148,9 @@
     }
     .lesson-num-top {
       display: flex; align-items: center; gap: 8px;
-      background: #efefed; border-bottom: 1px solid #e0e0de;
+      background: #f9f9f8;
       padding: 10px 14px;
     }
-    .lesson-num-top label { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .6px; white-space: nowrap; }
     .lesson-num-top input[type=text] {
       flex: 1; font-size: 13px; font-weight: 600;
       background: #fff; border: 1.5px solid #d8d8d8;
@@ -198,7 +197,7 @@
       .col-labels { display: none; }
     }
 
-    .words-section-label { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 4px; }
+    .words-section-label { font-size: 11px; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: .7px; display: block; margin-bottom: 6px; }
 
     /* Topic comment textarea */
     .topic-comment {
@@ -338,8 +337,7 @@
     <div class="panel" id="panel-add">
       <div class="lesson-num-row">
         <div class="lesson-num-top">
-          <label>Урок</label>
-          <input type="text" id="lesson-num" placeholder="">
+          <input type="text" id="lesson-num" placeholder="Название урока">
         </div>
       </div>
       <div class="topics-list" id="topics-list"></div>
@@ -520,7 +518,7 @@ window.checkAnswer = function() {
 function makeWordRow() {
   const div = document.createElement('div');
   div.className = 'word-row';
-  const placeholders = ['Напр: Բารев', 'Напр: Barev', 'Напр: Привет'];
+  const placeholders = ['Напр: Բարև', 'Напр: Barev', 'Напр: Привет'];
   placeholders.forEach(ph => {
     const inp = document.createElement('input');
     inp.type = 'text'; inp.placeholder = ph;
