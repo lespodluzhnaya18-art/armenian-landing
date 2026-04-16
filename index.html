@@ -146,17 +146,24 @@
 
     .topics-list { display: flex; flex-direction: column; gap: 12px; }
     .topic-block {
-      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-      padding: 16px 14px; background: #fcfcfc;
-      box-shadow: 0 2px 8px rgba(0,0,0,.03);
+      border: 1.5px solid #e2e2e2; border-radius: var(--radius-sm);
+      background: #f9f9f8;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+      overflow: hidden;
     }
-    .topic-block-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .topic-block-header input { flex: 1; font-size: 13px; }
-    .topic-remove { background: none; border: none; cursor: pointer; font-size: 19px; color: #ccc; line-height: 1; transition: color .18s; flex-shrink: 0; padding: 2px; }
+    .topic-block-top {
+      display: flex; align-items: center; gap: 8px;
+      background: #f2f2f0; border-bottom: 1px solid #e8e8e8;
+      padding: 11px 14px;
+    }
+    .topic-block-top input { flex: 1; font-size: 13px; font-weight: 600; background: transparent; border: none; padding: 0; border-radius: 0; box-shadow: none; }
+    .topic-block-top input:focus { border: none; box-shadow: none; outline: none; }
+    .topic-block-body { padding: 14px 14px 12px; }
+    .topic-remove { background: none; border: none; cursor: pointer; font-size: 17px; color: #ccc; line-height: 1; transition: color .18s; flex-shrink: 0; padding: 1px; }
     .topic-remove:hover { color: var(--red); }
 
-    .words-list { display: flex; flex-direction: column; gap: 8px; }
-    .col-labels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 3px; }
+    .words-list { display: flex; flex-direction: column; gap: 6px; }
+    .col-labels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 2px; }
     .col-labels span { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .5px; }
     .word-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
     .word-row input { font-size: 12px; padding: 9px 11px; }
@@ -165,21 +172,33 @@
       .col-labels { display: none; }
     }
 
+    /* Topic comment textarea */
+    .topic-comment {
+      width: 100%; margin-top: 10px; padding: 10px 12px;
+      border: 2px solid var(--border); border-radius: 12px;
+      font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--dark);
+      resize: vertical; min-height: 60px; outline: none; background: #fff;
+      transition: border-color .2s, box-shadow .2s; line-height: 1.5;
+    }
+    .topic-comment:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(232,52,28,.07); }
+    .topic-comment::placeholder { color: #ccc; }
+    .topic-comment-label { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .6px; display: block; margin-top: 12px; margin-bottom: 4px; }
+
     .add-row-btn {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      width: 100%; padding: 9px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      width: 100%; padding: 8px; border-radius: 9px;
       border: 1.5px dashed #ddd; background: none; cursor: pointer;
-      font-size: 12px; font-weight: 600; color: var(--light); font-family: 'DM Sans', sans-serif;
-      margin-top: 8px; transition: .18s;
+      font-size: 11px; font-weight: 600; color: var(--light); font-family: 'DM Sans', sans-serif;
+      margin-top: 6px; transition: .18s;
     }
     .add-row-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
 
     .add-topic-btn {
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 13px; border-radius: var(--radius-sm);
+      width: 100%; padding: 12px; border-radius: var(--radius-sm);
       border: 2px dashed var(--border); background: none; cursor: pointer;
       font-size: 13px; font-weight: 600; color: var(--light); font-family: 'DM Sans', sans-serif;
-      margin-top: 8px; transition: .18s;
+      margin-top: 10px; transition: .18s;
     }
     .add-topic-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-soft); }
 
@@ -293,13 +312,13 @@
         <span class="constructor-title">✍️ Конструктор урока</span>
       </div>
       <div class="lesson-num-row">
-        <label>Номер урока</label>
-        <input type="number" id="lesson-num" placeholder="Напр: 3" min="1">
+        <label>Урок</label>
+        <input type="text" id="lesson-num" placeholder="">
       </div>
       <div class="topics-list" id="topics-list"></div>
       <button class="add-topic-btn" onclick="addTopic()">＋ Добавить тему</button>
       <button class="btn btn-primary" id="save-lesson-btn" onclick="saveLesson()">
-        Сохранить весь урок 💾
+        Сохранить урок
       </button>
     </div>
 
@@ -484,26 +503,30 @@ window.addTopic = function() {
   const div = document.createElement('div');
   div.className = 'topic-block';
   div.innerHTML = `
-    <div class="topic-block-header">
-      <input type="text" placeholder="Название темы (напр: Семья)">
+    <div class="topic-block-top">
+      <input type="text" placeholder="Название темы">
       <button class="topic-remove" onclick="this.closest('.topic-block').remove()">×</button>
     </div>
-    <div class="col-labels">
-      <span>Армянский</span><span>Транскрипция *</span><span>Перевод *</span>
+    <div class="topic-block-body">
+      <div class="col-labels">
+        <span>на Армянском</span><span>Транскрипция *</span><span>Перевод *</span>
+      </div>
+      <div class="words-list">
+        ${wordRowHTML()}
+      </div>
+      <button class="add-row-btn" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend',${JSON.stringify(wordRowHTML())})">
+        + ещё строка
+      </button>
+      <span class="topic-comment-label">Комментарий / правило</span>
+      <textarea class="topic-comment" placeholder="Заметки, правила или пояснения к теме…"></textarea>
     </div>
-    <div class="words-list">
-      ${wordRowHTML()}${wordRowHTML()}${wordRowHTML()}
-    </div>
-    <button class="add-row-btn" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend','${wordRowHTML().replace(/'/g,"\\'")}')">
-      ＋ ещё строка
-    </button>
   `;
   list.appendChild(div);
 };
 
 window.saveLesson = async function() {
-  const lessonNum = parseInt(document.getElementById('lesson-num').value) || 0;
-  if (!lessonNum) return showToast('Укажите номер урока');
+  const lessonNum = document.getElementById('lesson-num').value.trim();
+  if (!lessonNum) return showToast('Укажите урок');
   const topics = document.querySelectorAll('#topics-list .topic-block');
   if (!topics.length) return showToast('Добавьте хотя бы одну тему');
 
@@ -512,15 +535,16 @@ window.saveLesson = async function() {
   let hasError = false;
 
   topics.forEach(block => {
-    const topicName = block.querySelector('input').value.trim() || '—';
+    const topicName    = block.querySelector('.topic-block-top input').value.trim() || '—';
+    const topicComment = (block.querySelector('.topic-comment')?.value || '').trim();
     block.querySelectorAll('.word-row').forEach(row => {
       const [armI, transI, rusI] = row.querySelectorAll('input');
       const arm   = armI.value.trim();
       const trans = transI.value.trim();
       const rus   = rusI.value.trim();
-      if (!arm && !trans && !rus) return;    // пустая строка — пропуск
+      if (!arm && !trans && !rus) return;
       if (!trans || !rus) { hasError = true; return; }
-      toSave.push({ lesson_number: lessonNum, topic_name: topicName, arm, trans, rus, userId: uid });
+      toSave.push({ lesson_number: lessonNum, topic_name: topicName, topic_comment: topicComment, arm, trans, rus, userId: uid });
     });
   });
 
@@ -534,14 +558,14 @@ window.saveLesson = async function() {
   toSave.forEach(w => batch.set(db.collection('words').doc(), { ...w, createdAt: ts }));
   try {
     await batch.commit();
-    showToast(`✓ Сохранено ${toSave.length} слов!`);
+    showToast(`Сохранено ${toSave.length} слов`);
     document.getElementById('topics-list').innerHTML = '';
     document.getElementById('lesson-num').value = '';
     topicCount = 0;
     addTopic();
     await loadData();
   } catch(e) { showToast('Ошибка сохранения'); }
-  btn.disabled = false; btn.textContent = 'Сохранить весь урок 💾';
+  btn.disabled = false; btn.textContent = 'Сохранить урок';
 };
 
 /* ══════════════════════════════════════
