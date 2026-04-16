@@ -276,6 +276,62 @@
     /* ── TOAST ── */
     .toast { position: fixed; bottom: 34px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 12px 24px; border-radius: 50px; font-size: 13px; z-index: 10000; max-width: 90vw; white-space: nowrap; transition: transform .3s cubic-bezier(.34,1.56,.64,1); pointer-events: none; font-weight: 500; }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── ТЕТРАДЬ — lesson cards ── */
+    .nb-lesson-card {
+      border: 1.5px solid #e2e2e2; border-radius: var(--radius-sm);
+      background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.04);
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .nb-lesson-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; background: #f5f5f3; cursor: pointer;
+      user-select: none; transition: background .18s;
+    }
+    .nb-lesson-header:hover { background: #eeecea; }
+    .nb-lesson-name {
+      font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark);
+    }
+    .nb-lesson-meta { font-size: 11px; color: var(--light); display: flex; align-items: center; gap: 10px; }
+    .nb-chevron { font-size: 12px; color: var(--light); transition: transform .22s; }
+    .nb-lesson-card.open .nb-chevron { transform: rotate(180deg); }
+    .nb-lesson-body { display: none; padding: 0 16px 12px; }
+    .nb-lesson-card.open .nb-lesson-body { display: block; }
+    .nb-topic-section { margin-top: 12px; }
+    .nb-topic-name {
+      font-size: 10px; font-weight: 700; color: var(--mid); text-transform: uppercase;
+      letter-spacing: .7px; padding: 3px 8px; background: #f0f0f0;
+      border-radius: 6px; display: inline-block; margin-bottom: 6px;
+    }
+    .nb-header-row { display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── СЛОВАРЬ — dictionary grouped by topic ── */
+    .dict-panel-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;
+    }
+    .dict-panel-title { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1.1px; }
+    .dict-panel-count { font-size: 12px; background: var(--red-soft); color: var(--red); padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+    .dict-topic-block { margin-bottom: 20px; }
+    .dict-topic-header {
+      font-size: 10px; font-weight: 800; color: var(--mid); text-transform: uppercase;
+      letter-spacing: .8px; padding: 6px 10px; background: #f2f2f0;
+      border-radius: 8px; margin-bottom: 8px; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .dict-topic-count { font-size: 10px; font-weight: 600; color: var(--light); background: #e8e8e8; padding: 2px 8px; border-radius: 10px; }
+    .dict-word-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px; padding: 9px 0; border-bottom: 1px solid #f3f3f3; align-items: start;
+    }
+    .dict-word-row:last-child { border-bottom: none; }
+    .dict-word-arm { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--dark); line-height: 1.2; }
+    .dict-word-trans { font-size: 12px; color: var(--light); padding-top: 2px; }
+    .dict-word-rus { font-size: 13px; font-weight: 500; color: var(--mid); padding-top: 3px; }
+    .dict-col-labels {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+      margin-bottom: 4px;
+    }
+    .dict-col-labels span { font-size: 9px; font-weight: 700; color: var(--light); text-transform: uppercase; letter-spacing: .5px; }
   </style>
 </head>
 <body>
@@ -320,7 +376,8 @@
       <div class="tab active" data-tab="test"><span class="tab-icon">🎯</span>Тесты</div>
       <div class="tab" data-tab="add"><span class="tab-icon">✍️</span>Урок</div>
       <div class="tab" data-tab="words"><span class="tab-icon">📓</span>Тетрадь</div>
-      <div class="tab" data-tab="alphabet"><span class="tab-icon">📖</span>Алфавит</div>
+      <div class="tab" data-tab="vocab"><span class="tab-icon">📖</span>Словарь</div>
+      <div class="tab" data-tab="alphabet"><span class="tab-icon">🔤</span>Алфавит</div>
       <div class="tab" data-tab="library"><span class="tab-icon">🏛️</span>Библиотека</div>
     </div>
 
@@ -347,13 +404,22 @@
       </button>
     </div>
 
-    <!-- NOTEBOOK -->
+    <!-- NOTEBOOK — lesson cards -->
     <div class="panel" id="panel-words">
       <div class="notebook-header">
-        <span class="notebook-title">📓 Рабочая тетрадь</span>
-        <span class="notebook-count" id="notebook-count">0 слов</span>
+        <span class="notebook-title">📓 Тетрадь</span>
+        <span class="notebook-count" id="notebook-count">0 уроков</span>
       </div>
       <div id="words-content"><div class="empty-state">Загрузка…</div></div>
+    </div>
+
+    <!-- VOCAB — grouped by topic -->
+    <div class="panel" id="panel-vocab">
+      <div class="dict-panel-header">
+        <span class="dict-panel-title">📖 Словарь</span>
+        <span class="dict-panel-count" id="vocab-count">0 слов</span>
+      </div>
+      <div id="vocab-content"><div class="empty-state">Загрузка…</div></div>
     </div>
 
     <!-- ALPHABET -->
@@ -647,55 +713,119 @@ window.saveLesson = async function() {
 };
 
 /* ══════════════════════════════════════
-   NOTEBOOK
+   ТЕТРАДЬ — lesson cards (accordion)
 ══════════════════════════════════════ */
 function renderNotebook() {
-  const n = wordDocs.length;
-  document.getElementById('notebook-count').textContent = n + ' ' + plural(n,'слово','слова','слов');
-  const cont = document.getElementById('words-content');
-  if (!n) { cont.innerHTML = '<div class="empty-state">Тетрадь пуста.<br>Добавьте первое слово!</div>'; return; }
+  const cont  = document.getElementById('words-content');
+  const docs  = wordDocs;
 
-  // Admin banner
-  const adminBanner = isAdmin
-    ? `<div class="admin-banner">⭐ Режим администратора — отображаются записи всех пользователей</div>`
-    : '';
+  if (!docs.length) {
+    document.getElementById('notebook-count').textContent = '0 уроков';
+    cont.innerHTML = '<div class="empty-state">Тетрадь пуста.<br>Добавьте первый урок!</div>';
+    return;
+  }
 
-  // Group: lesson_number → topic_name
+  // Group: lesson_number → topic_name → words
   const lessons = {};
-  wordDocs.forEach(({ id, data: w }) => {
-    const ln = w.lesson_number ?? '—';
-    const lt = w.topic_name    ?? '—';
+  docs.forEach(({ id, data: w }) => {
+    const ln = String(w.lesson_number ?? '—');
+    const lt = w.topic_name ?? '—';
     if (!lessons[ln]) lessons[ln] = {};
     if (!lessons[ln][lt]) lessons[ln][lt] = [];
     lessons[ln][lt].push({ id, w });
   });
 
-  const grouped = Object.keys(lessons).sort((a,b)=>a-b).map(ln => `
-    <div class="lesson-group">
-      <div class="lesson-group-title">Урок ${ln}</div>
-      ${Object.keys(lessons[ln]).map(lt => `
-        <div class="topic-group">
-          ${lt !== '—' ? `<div class="topic-group-title">${lt}</div>` : ''}
-          ${lessons[ln][lt].map(({id,w}) => {
-            const disp = w.arm || w.trans;
-            return `<div class="dict-item" id="di-${id}">
-              <div class="dict-item-text">
-                <span class="dict-arm">${disp}</span>
-                ${w.arm && w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
-                <span class="dict-rus">${w.rus}</span>
-              </div>
-              <div class="dict-actions">
-                <button class="action-btn edit-btn" onclick="startEdit('${id}')">✏️</button>
-                <button class="action-btn del-btn"  onclick="deleteWord('${id}')">×</button>
-              </div>
-            </div>`;
-          }).join('')}
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  const lessonKeys = Object.keys(lessons).sort((a, b) => {
+    const na = parseFloat(a), nb = parseFloat(b);
+    return isNaN(na) || isNaN(nb) ? a.localeCompare(b) : na - nb;
+  });
 
-  cont.innerHTML = adminBanner + grouped;
+  document.getElementById('notebook-count').textContent =
+    lessonKeys.length + ' ' + plural(lessonKeys.length, 'урок', 'урока', 'уроков');
+
+  const adminBanner = isAdmin
+    ? '<div class="admin-banner">⭐ Режим администратора — все пользователи</div>' : '';
+
+  cont.innerHTML = adminBanner + lessonKeys.map(ln => {
+    const topicKeys = Object.keys(lessons[ln]);
+    const totalWords = topicKeys.reduce((s, lt) => s + lessons[ln][lt].length, 0);
+
+    const topicsHTML = topicKeys.map(lt => {
+      const words = lessons[ln][lt];
+      return `<div class="nb-topic-section">
+        ${lt !== '—' ? `<div class="nb-topic-name">${lt}</div>` : ''}
+        ${words.map(({ id, w }) => {
+          const disp = w.arm || w.trans;
+          return `<div class="dict-item" id="di-${id}">
+            <div class="dict-item-text">
+              <span class="dict-arm">${disp}</span>
+              ${w.arm && w.trans ? `<span class="dict-trans">${w.trans}</span>` : ''}
+              <span class="dict-rus">${w.rus}</span>
+            </div>
+            <div class="dict-actions">
+              <button class="action-btn edit-btn" onclick="startEdit('${id}')">✏️</button>
+              <button class="action-btn del-btn"  onclick="deleteWord('${id}')">×</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+
+    return `<div class="nb-lesson-card" id="nb-${ln.replace(/\s/g,'_')}">
+      <div class="nb-lesson-header" onclick="toggleLesson(this)">
+        <div>
+          <div class="nb-lesson-name">${ln}</div>
+          <div class="nb-lesson-meta">${topicKeys.length} тем · ${totalWords} слов</div>
+        </div>
+        <span class="nb-chevron">▼</span>
+      </div>
+      <div class="nb-lesson-body">${topicsHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleLesson = function(header) {
+  header.closest('.nb-lesson-card').classList.toggle('open');
+};
+
+/* ══════════════════════════════════════
+   СЛОВАРЬ — grouped by topic_name (alpha)
+══════════════════════════════════════ */
+function renderVocab() {
+  const docs = wordDocs;
+  const n    = docs.length;
+  document.getElementById('vocab-count').textContent = n + ' ' + plural(n,'слово','слова','слов');
+  const cont = document.getElementById('vocab-content');
+  if (!n) { cont.innerHTML = '<div class="empty-state">Словарь пуст.<br>Добавьте слова через урок!</div>'; return; }
+
+  // Group by topic_name only
+  const topics = {};
+  docs.forEach(({ id, data: w }) => {
+    const lt = (w.topic_name || '—').trim();
+    if (!topics[lt]) topics[lt] = [];
+    topics[lt].push({ id, w });
+  });
+
+  const sortedTopics = Object.keys(topics).sort((a, b) => a.localeCompare(b, 'ru'));
+
+  cont.innerHTML = sortedTopics.map(lt => {
+    const words = topics[lt];
+    return `<div class="dict-topic-block">
+      <div class="dict-topic-header">
+        <span>${lt !== '—' ? lt : 'Без темы'}</span>
+        <span class="dict-topic-count">${words.length} слов</span>
+      </div>
+      <div class="dict-col-labels">
+        <span>на армянском</span><span>транскрипция</span><span>перевод</span>
+      </div>
+      ${words.map(({ w }) => `
+        <div class="dict-word-row">
+          <div class="dict-word-arm">${w.arm || w.trans}</div>
+          <div class="dict-word-trans">${w.arm ? w.trans : ''}</div>
+          <div class="dict-word-rus">${w.rus}</div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
 }
 
 window.startEdit = function(docId) {
@@ -790,6 +920,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById('panel-' + id).classList.add('active');
     if (id === 'alphabet') loadAlphabet();
     if (id === 'words')    renderNotebook();
+    if (id === 'vocab')    renderVocab();
     if (id === 'test')     renderTest();
   });
 });
